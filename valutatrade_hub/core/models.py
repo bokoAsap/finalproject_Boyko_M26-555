@@ -1,5 +1,17 @@
 import hashlib
 
+
+exchange_rates = {
+    'USD':
+        {
+            'RUB': 0.01,
+            'EUR': 1.23,
+            'GBP': 0.75,
+            'CNY': 6.69,
+            'JPY': 158,21
+        }
+}
+
 class User:
     def __init__(self, 
                 user_id: int, 
@@ -117,3 +129,45 @@ class Wallet:
         Вывод информации о текущем балансе
         """
         print(f'Текущий баланс составляет {self.balance} {self.currency_code}')       
+
+class Portfolio:
+    def __init__(self,
+        user_id: int,
+        wallets: dict[str, Wallet]
+    ):
+        self._user_id = user_id
+        self._wallets = wallets
+    
+    @property
+    def user(self):
+        return self._user_id
+    
+    @property
+    def wallets(self):
+        return self._wallets
+
+    def add_currency(self, currency_code:str):
+        """
+        Добавляет новый кошелёк в портфель (если его ещё нет)
+        """
+        if not currency_code in self.wallets.keys():
+            self.wallets[currency_code] == Wallet(currency_code, 0)
+        else:
+            raise KeyError('Кошелек в такой валюте уже есть в портфеле')
+    
+    def get_total_value(self, base_currency:str='USD'):
+        """
+        Возвращает общую стоимость всех валют пользователя 
+        в указанной базовой валюте (по курсам, полученным из API или фиктивным данным)
+        """
+        total_sum = 0
+        base_currency_rate = exchange_rates[base_currency]
+        for wallet in self.wallets:
+            total_sum += wallet['currency_code'] * base_currency_rate['currency_code']
+        return total_sum
+        
+    def get_wallet(currency_code:str):
+        """
+        Возвращает объект Wallet по коду валюты.
+        """
+        return self.wallets[currency_code]
