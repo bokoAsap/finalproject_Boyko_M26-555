@@ -90,7 +90,7 @@ class Wallet:
                 currency_code: str, 
                 balance: float):
         self.currency_code = currency_code
-        self._balance = _balance
+        self._balance = balance
     
     @property
     def balance(self):
@@ -100,25 +100,32 @@ class Wallet:
     def balance(self, balance):
         if not isinstance(balance, (int, float)):
             raise TypeError('Неподходящий тип данных для баланса кошелька')
+
         if balance < 0:
             raise ValueError('Баланс не может быть отрицательным')
 
-    def amount_check(amount):
-        if amount > 0:
-            return amount
-        else:
+        self._balance = balance
+
+    def _amount_check(amount):
+        if not isinstance(balance, (int, float)):
+            raise TypeError('Неподходящий тип данных для суммы')
+        
+        if amount <= 0:
             raise ValueError('Сумма не может быть отрицательной')
+        
+        return amount
 
     def deposit(self, amount: float):
         """
         Пополнение баланса
         """
-        self.balance += amount_check(amount)
+        self.balance += self._amount_check(amount)
     
     def withdraw(self, amount: float):
         """
         Снятие средств (если баланс позволяет)
         """
+        amount = self._amount_check(amount)
         if self.balance >= amount:
             self.balance -= amount
         else:
