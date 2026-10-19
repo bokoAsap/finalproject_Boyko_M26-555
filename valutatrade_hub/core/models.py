@@ -71,4 +71,49 @@ class User:
         """
         return self.hashed_password == hashlib.sha256(
                                                     (password + self._salt).encode('utf-8')
-                                                    ).hexdigest()         
+                                                    ).hexdigest()  
+
+class Wallet:
+    def __init__(self, 
+                currency_code: str, 
+                balance: float):
+        self.currency_code = currency_code
+        self._balance = _balance
+    
+    @property
+    def balance(self):
+        return self._balance
+    
+    @balance.setter
+    def balance(self, balance):
+        if not isinstance(balance, (int, float)):
+            raise TypeError('Неподходящий тип данных для баланса кошелька')
+        if balance < 0:
+            raise ValueError('Баланс не может быть отрицательным')
+
+    def amount_check(amount):
+        if amount > 0:
+            return amount
+        else:
+            raise ValueError('Сумма не может быть отрицательной')
+
+    def deposit(self, amount: float):
+        """
+        Пополнение баланса
+        """
+        self.balance += amount_check(amount)
+    
+    def withdraw(self, amount: float):
+        """
+        Снятие средств (если баланс позволяет)
+        """
+        if self.balance >= amount:
+            self.balance -= amount
+        else:
+            raise ValueError('Сумма снятия не может быть больше баланса')
+    
+    def get_balance_info(self):
+        """
+        Вывод информации о текущем балансе
+        """
+        print(f'Текущий баланс составляет {self.balance} {self.currency_code}')       
