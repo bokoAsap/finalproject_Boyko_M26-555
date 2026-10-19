@@ -1,15 +1,13 @@
 import hashlib
-
+from datetime import datetime
 
 exchange_rates = {
-    'USD':
-        {
-            'RUB': 0.01,
-            'EUR': 1.23,
-            'GBP': 0.75,
-            'CNY': 6.69,
-            'JPY': 158,21
-        }
+    'USD': 1.0,
+    'RUB': 0.01,
+    'EUR': 1.23,
+    'GBP': 0.75,
+    'CNY': 0.15,
+    'JPY': 0.0063
 }
 
 class User:
@@ -82,8 +80,8 @@ class User:
         Проверяет введённый пароль на совпадение
         """
         return self.hashed_password == hashlib.sha256(
-                                                    (password + self._salt).encode('utf-8')
-                                                    ).hexdigest()  
+                (password + self._salt).encode('utf-8')
+                ).hexdigest()  
 
 class Wallet:
     def __init__(self, 
@@ -106,8 +104,8 @@ class Wallet:
 
         self._balance = balance
 
-    def _amount_check(amount):
-        if not isinstance(balance, (int, float)):
+    def _amount_check(self, amount):
+        if not isinstance(amount, (int, float)):
             raise TypeError('Неподходящий тип данных для суммы')
         
         if amount <= 0:
@@ -151,14 +149,14 @@ class Portfolio:
     
     @property
     def wallets(self):
-        return self._wallets
+        return self._wallets.copy()
 
     def add_currency(self, currency_code:str):
         """
         Добавляет новый кошелёк в портфель (если его ещё нет)
         """
-        if not currency_code in self.wallets.keys():
-            self.wallets[currency_code] == Wallet(currency_code, 0)
+        if currency_code not in self._wallets:
+            self._wallets[currency_code] = Wallet(currency_code, 0)
         else:
             raise KeyError('Кошелек в такой валюте уже есть в портфеле')
     
@@ -168,13 +166,16 @@ class Portfolio:
         в указанной базовой валюте (по курсам, полученным из API или фиктивным данным)
         """
         total_sum = 0
-        base_currency_rate = exchange_rates[base_currency]
-        for wallet in self.wallets:
-            total_sum += wallet['currency_code'] * base_currency_rate['currency_code']
+        for currency, wallet in self._wallets.items():
+            total_sum += (
+                wallet.balance *
+                exchange_rates[currency] /
+                exchange_rates[base_currency]
+            )
         return total_sum
         
-    def get_wallet(currency_code:str):
+    def get_wallet(self, currency_code:str):
         """
         Возвращает объект Wallet по коду валюты.
         """
-        return self.wallets[currency_code]
+        return self._wallets[currency_code]
