@@ -41,19 +41,19 @@ class User:
     @property
     def hashed_password(self):
         return self._hashed_password
+    
+    @property
+    def salt(self):
+        return self._salt
 
     @ hashed_password.setter
     def hashed_password(self, password):
         if len(password) > 4:
             self._hashed_password = hashlib.sha256(
-                (password + salt).encode('utf-8')
+                (password + self.salt).encode('utf-8')
             ).hexdigest()
         else:
             raise ValueError('Пароль не может быть короче 4 символов')
-    
-    @property
-    def salt(self):
-        return self._salt
     
     @property
     def registration_date(self):
@@ -133,7 +133,17 @@ class Wallet:
         """
         Вывод информации о текущем балансе
         """
-        print(f'Текущий баланс составляет {self.balance} {self.currency_code}')       
+        print(f'{self.currency_code}: {self.balance}', end='') 
+
+    def count_in_base_currency(self, base_currency: str = 'USD'):
+        """
+        Пересчет баланса кошелька в базой валюте, по умолчанию в долларах
+        """
+        balance_in_base_currency = (self.balance * 
+                                    exchange_rates[self.currency_code] /
+                                    exchange_rates[base_currency])
+
+        return balance_in_base_currency
 
 class Portfolio:
     def __init__(self,
@@ -160,17 +170,15 @@ class Portfolio:
         else:
             raise KeyError('Кошелек в такой валюте уже есть в портфеле')
     
-    def get_total_value(self, base_currency:str='USD'):
+    def get_total_value(self, base_currency:str = 'USD'):
         """
         Возвращает общую стоимость всех валют пользователя 
         в указанной базовой валюте (по курсам, полученным из API или фиктивным данным)
         """
         total_sum = 0
-        for currency, wallet in self._wallets.items():
+        for wallet in self._wallets.values():
             total_sum += (
-                wallet.balance *
-                exchange_rates[currency] /
-                exchange_rates[base_currency]
+                wallet.count_in_base_currency(base_currency)
             )
         return total_sum
         
