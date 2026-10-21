@@ -20,6 +20,59 @@ def portfolio_to_dict(portfolio: Portfolio):
         'wallets': portfolio.wallets
     }
 
+def load_portfolio(user_id: int):
+    """
+    Загрузка портфеля и кошельков
+    """
+    portfolio_data = None
+
+    portfolios = utils.load_data('portfolios')
+
+    for portfolio in portfolios:
+        if portfolio['user_id'] == user_id:
+            portfolio_data = portfolio
+            break
+    
+    if portfolio_data is None:
+        raise ValueError('Портфель пользователя не найден')
+    
+    wallets = {}
+
+    for currency_code, wallet_data in portfolio_data['wallets'].items():
+        wallets[currency_code] = Wallet(
+            currency_code=currency_code,
+            balance=wallet_data['balance']
+        )
+
+    portfolio = Portfolio(
+        user_id=portfolio_data['user_id'],
+        wallets=wallets
+    )
+    
+    return portfolio
+
+def save_portfolio(portfolio: Portfolio):
+    """
+    Сохранение портфеля 
+    """
+    portfolios = utils.load_data('portfolios')
+
+    portfolio_data = {
+        'user_id': portfolio.user_id,
+        'wallets': {
+            currency_code: {'balance': wallet.balance}
+            for currency_code, wallet in portfolio.wallets.items()
+        }
+    }
+
+    for index, saved_portfolio in enumerate(portfolios):
+        if saved_portfolio['user_id'] == portfolio.user_id:
+            portfolios[index] = portfolio_data
+            utils.save_data('portfolios', portfolios)
+            return
+
+    raise ValueError('Портфель пользователя не найден')
+
 def register(username: str, password: str):
     """
     Назначение: создать нового пользователя.
@@ -125,30 +178,7 @@ def show_portfolio(user: User|None, base: str ='USD'):
     
     user_id = user.user_id
 
-    portfolio_data = None
-
-    portfolios = utils.load_data('portfolios')
-
-    for portfolio in portfolios:
-        if portfolio['user_id'] == user_id:
-            portfolio_data = portfolio
-            break
-    
-    if portfolio_data is None:
-        raise ValueError('Портфель пользователя не найден')
-    
-    wallets = {}
-
-    for currency_code, wallet_data in portfolio_data['wallets'].items():
-        wallets[currency_code] = Wallet(
-            currency_code=currency_code,
-            balance=wallet_data['balance']
-        )
-
-    portfolio = Portfolio(
-        user_id=portfolio_data['user_id'],
-        wallets=wallets
-    )
+    portfolio = load_portfolio(user_id)
 
     print(f'Портфель пользователя {user.username} (база: {base})')
 
@@ -163,7 +193,6 @@ def show_portfolio(user: User|None, base: str ='USD'):
     print('-' * 40)
     total = portfolio.get_total_value(base)
     print(f'ИТОГО: {total} {base}')
-
 
 def buy(user: User|None, currency:str, amount: float):
     """
@@ -183,7 +212,7 @@ def buy(user: User|None, currency:str, amount: float):
     
     user_id = user.user_id
 
-    if isinstance(currency, str):
+    if not isinstance(currency, str):
         raise TypeError('Код валюты строка')
     if len(currency) != 3 or not currency.isalpha() or not currency.isupper():
         raise ValueError('Неправильный код валюты')
@@ -191,30 +220,7 @@ def buy(user: User|None, currency:str, amount: float):
     if amount <= 0:
         raise ValueError('Сумма должны быть положительной')
 
-    portfolio_data = None
-
-    portfolios = utils.load_data('portfolios')
-
-    for portfolio in portfolios:
-        if portfolio['user_id'] == user_id:
-            portfolio_data = portfolio
-            break
-    
-    if portfolio_data is None:
-        raise ValueError('Портфель пользователя не найден')
-    
-    wallets = {}
-
-    for currency_code, wallet_data in portfolio_data['wallets'].items():
-        wallets[currency_code] = Wallet(
-            currency_code=currency_code,
-            balance=wallet_data['balance']
-        )
-
-    portfolio = Portfolio(
-        user_id=portfolio_data['user_id'],
-        wallets=wallets
-    )
+    portfolio = load_portfolio(user_id)
 
     if currency not in portfolio.wallets:
         portfolio.add_currency(currency)
@@ -225,12 +231,7 @@ def buy(user: User|None, currency:str, amount: float):
 
     wallet.deposit(amount)
 
-    portfolio_data['wallets'] = {
-        currency_code: {'balance': wallet.balance}
-        for currency_code, wallet in portfolio.wallets.items()
-    }
-
-    utils.save_data('portfolios', portfolios)
+    save_portfolio(portfolio)
 
     print(f'Покупка выполнена: {amount} {currency} по курсу 59300.00 USD/{currency}')
     print('Изменения в портфеле:')
@@ -251,7 +252,7 @@ def sell(user: User|None, currency:str, amount: float):
     
     user_id = user.user_id
 
-    if isinstance(currency, str):
+    if not isinstance(currency, str):
         raise TypeError('Код валюты строка')
     if len(currency) != 3 or not currency.isalpha() or not currency.isupper():
         raise ValueError('Неправильный код валюты')
@@ -259,33 +260,7 @@ def sell(user: User|None, currency:str, amount: float):
     if amount <= 0:
         raise ValueError('Сумма должны быть положительной')
     
-    portfolio_data = None
-
-    portfolios = utils.load_data('portfolios')
-
-    for portfolio in portfolios:
-        if portfolio['user_id'] == user_id:
-            portfolio_data = portfolio
-            break
-    
-    if portfolio_data is None:
-        raise ValueError('Портфель пользователя не найден')
-    
-    wallets = {}
-
-    for currency_code, wallet_data in portfolio_data['wallets'].items():
-        wallets[currency_code] = Wallet(
-            currency_code=currency_code,
-            balance=wallet_data['balance']
-        )
-
-    portfolio = Portfolio(
-        user_id=portfolio_data['user_id'],
-        wallets=wallets
-    )
-
-    if currency not in portfolio.wallets:
-        portfolio.add_currency(currency)
+    portfolio = load_portfolio(user_id)
     
     wallet = portfolio.get_wallet(currency)
 
@@ -293,14 +268,8 @@ def sell(user: User|None, currency:str, amount: float):
 
     wallet.withdraw(amount)
 
-    portfolio_data['wallets'] = {
-        currency_code: {'balance': wallet.balance}
-        for currency_code, wallet in portfolio.wallets.items()
-    }
-
-    utils.save_data('portfolios', portfolios)
+    save_portfolio(portfolio)
     
     print(f'Продажа выполнена: {amount} {currency} по курсу 59800.00 USD/{currency}')
     print('Изменения в портфеле:')
     print(f'- {currency}: было {last_balance} → стало {wallet.balance}')
-
