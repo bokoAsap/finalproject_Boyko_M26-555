@@ -1,4 +1,3 @@
-import hashlib
 import secrets
 from datetime import datetime
 
@@ -12,7 +11,7 @@ def user_to_dict(user: User):
         'username': user.username,
         'hashed_password': user.hashed_password,
         'salt': user.salt,
-        'registration_date': user.registration_date
+        'registration_date': user.registration_date.isoformat()
     }
 
 def portfolio_to_dict(portfolio: Portfolio):
@@ -35,51 +34,63 @@ def register(username: str, password: str):
     """
 
     users = utils.load_data('users')
+    for user in users:
+        if user['username'] == username:
+            raise ValueError(f'Имя пользователя {username} уже занято')
+    
 
-    if username in users:
-        raise ValueError(f'{username} уже зарегистрирован')
-
-    user_id = len(users) + 1
+    user_id = max(
+        (user['user_id'] for user in users),
+        default=0
+    ) + 1
 
     salt = secrets.token_hex(16)
 
-    hashed_password = hashlib.sha256(
-        (password + salt).encode('utf-8')
-    ).hexdigest()
-
-    now = datetime.now().isoformat()
+    now = datetime.now()
 
     new_user = User(
         user_id=user_id,
         username=username,
-        hashed_password=hashed_password,
+        hashed_password='',
         salt=salt,
         reg_date=now
     )
 
+    new_user.username = username        
+    new_user.hashed_password = password 
+
     user_to_save = user_to_dict(new_user)
-    utils.save_data('users', user_to_save)
+    users.append(user_to_save)
+    utils.save_data('users', users)
 
     new_portfolio = Portfolio(
         user_id=user_id,
-        wallet={}
+        wallets={}
     )
 
-    portfolio_to_save = portfolio_to_dict(new_portfolio)
-    utils.save_data('portfolios', portfolio_to_save)
+    portfolios = utils.load_data('portfolios')
 
-    print(f'Пользователь {username} успешно создан')
+    portfolio_to_save = portfolio_to_dict(new_portfolio)
+    portfolios.append(portfolio_to_save)
+    utils.save_data('portfolios', portfolios)
+
+    print(f'Пользователь {username} зарегистрирован (id={new_user.user_id})')
+    print('Войдите: login --username {username} --password ****')
+    return new_user
 
 def login(username: str, password:str):
     """
-    Назначение: создать нового пользователя.
+    Назначение: войти и зафиксировать текущую сессию.
     Шаги:
     Найти пользователя по username.
     Сравнить хеш пароля.
     """
     users = utils.load_data('users')
-    
-    user_data = users.get(username)
+
+    for user in users:
+        if user['username'] == username:
+            user_data = user
+            break
 
     if user_data is None:
         raise ValueError('Неверное имя пользователя')
@@ -89,10 +100,11 @@ def login(username: str, password:str):
         username=user_data['username'],
         hashed_password=user_data['hashed_password'],
         salt=user_data['salt'], 
-        reg_date=user_data['reg_date']
+        reg_date=user_data['registration_date']
     )
 
     if not user.verify_password(password):
         raise ValueError('Неверное имя пользователя или пароль')
     
+    print(f"Вы вошли как '{username}'")    
     return user
