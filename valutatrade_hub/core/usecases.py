@@ -163,3 +163,75 @@ def show_portfolio(user: User|None, base: str ='USD'):
     print('-' * 40)
     total = portfolio.get_total_value(base)
     print(f'ИТОГО: {total} {base}')
+
+
+def buy(user: User|None, currency:str, amount: float):
+    """
+    Назначение: купить валюту.
+    Шаги:
+    Проверить логин.
+    Валидировать currency (формат) и amount > 0.
+    Если в портфеле нет такого кошелька — автоматически создать (как делает add_currency).
+    Увеличить баланс кошелька на amount.
+    Опционально (по желанию) вести «расчётную стоимость» покупки для отчёта:
+    Получить текущий курс currency → base.
+    Посчитать стоимость amount * rate и вывести в итог.
+    """
+    if user is None:
+        raise PermissionError('Сначала войдите в аккаунт')
+    
+    user_id = user.user_id
+
+    if isinstance(currency, str):
+        raise TypeError('Код валюты строка')
+    if len(currency) != 3 or not currency.isalpha() not currency.isupper():
+        raise ValueError('Неправильный код валюты')
+    
+    if amount <= 0:
+        raise ValueError('Сумма должны бвть положительной')
+
+    portfolio_data = None
+
+    portfolios = utils.load_data('portfolios')
+
+    for portfolio in portfolios:
+        if portfolio['user_id'] == user_id:
+            portfolio_data = portfolio
+            break
+    
+    if portfolio_data is None:
+        raise ValueError('Портфель пользователя не найден')
+    
+    wallets = {}
+
+    for currency_code, wallet_data in portfolio_data['wallets'].items():
+        wallets[currency_code] = Wallet(
+            currency_code=currency_code,
+            balance=wallet_data['balance']
+        )
+
+    portfolio = Portfolio(
+        user_id=portfolio_data['user_id'],
+        wallets=wallets
+    )
+
+    if not currency in portfolio.wallets:
+        portfolio.add_currency(currency)
+    
+    wallet = portfolio.get_wallet(currency)
+
+    last_balance = wallet.balance
+
+    wallet.deposit(amount)
+
+    portfolio_data['wallets'] = {
+        currency_code: {'balance': wallet.balance}
+        for currency_code, wallet in portfolio.wallets.items()
+    }
+
+    utils.save_data('portfolios', portfolios)
+
+    print(f'Покупка выполнена: {amount} {currency} по курсу 59300.00 USD/{currency}')
+    print('Изменения в портфеле:')
+    print(f'- {wallet.currency_code}: было {last_balance} → стало {wallet.balance}')
+
