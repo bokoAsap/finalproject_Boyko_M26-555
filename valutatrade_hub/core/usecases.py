@@ -23,6 +23,8 @@ def portfolio_to_dict(portfolio: Portfolio):
 
 def register(username: str, password: str):
     """
+    Назначение: создать нового пользователя.
+    Шаги:
     Проверить уникальность username в users.json.
     Сгенерировать user_id (например, автоинкремент).
     Захешировать пароль (делайте односторонний псевдо-хеш 
@@ -67,3 +69,30 @@ def register(username: str, password: str):
     utils.save_data('portfolios', portfolio_to_save)
 
     print(f'Пользователь {username} успешно создан')
+
+def login(username: str, password:str):
+    """
+    Назначение: создать нового пользователя.
+    Шаги:
+    Найти пользователя по username.
+    Сравнить хеш пароля.
+    """
+    users = utils.load_data('users')
+    
+    user_data = users.get(username)
+
+    if user_data is None:
+        raise ValueError('Неверное имя пользователя')
+    
+    user = User(
+        user_id=user_data['user_id'],
+        username=user_data['username'],
+        hashed_password=user_data['hashed_password'],
+        salt=user_data['salt'], 
+        reg_date=user_data['reg_date']
+    )
+
+    if not user.verify_password(password):
+        raise ValueError('Неверное имя пользователя или пароль')
+    
+    return user
