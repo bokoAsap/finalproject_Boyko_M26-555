@@ -45,7 +45,9 @@ class User:
     @ hashed_password.setter
     def hashed_password(self, password):
         if len(password) > 4:
-            self._hashed_password = password
+            self._hashed_password = hashlib.sha256(
+                (password + salt).encode('utf-8')
+            ).hexdigest()
         else:
             raise ValueError('Пароль не может быть короче 4 символов')
     
