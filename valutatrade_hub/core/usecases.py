@@ -2,7 +2,7 @@ import secrets
 from datetime import datetime
 
 import utils
-from models import Portfolio, User
+from models import Portfolio, User, Wallet
 
 
 def user_to_dict(user: User):
@@ -108,3 +108,58 @@ def login(username: str, password:str):
     
     print(f"Вы вошли как '{username}'")    
     return user
+
+def show_portfolio(user: User|None, base: str ='USD'):
+    """ Назначение: показать все кошельки и итоговую стоимость в базовой валюте 
+    (по умолчанию USD).
+    Шаги:
+    Убедиться, что пользователь залогинен.
+    Загрузить портфель пользователя.
+    Если кошельков нет — сообщить об этом.
+    Для каждого кошелька: показать currency_code, баланс и посчитать стоимость 
+    в base по текущим курсам;
+    Показать сумму по всем кошелькам в base.
+    """
+    if user is None:
+        raise PermissionError('Сначала войдите в аккаунт')
+    
+    user_id = user.user_id
+
+    portfolio_data = None
+
+    portfolios = utils.load_data('portfolios')
+
+    for portfolio in portfolios:
+        if portfolio['user_id'] == user_id:
+            portfolio_data = portfolio
+            break
+    
+    if portfolio_data is None:
+        raise ValueError('Портфель пользователя не найден')
+    
+    wallets = {}
+
+    for currency_code, wallet_data in portfolio_data['wallets'].items():
+        wallets[currency_code] = Wallet(
+            currency_code=currency_code,
+            balance=wallet_data['balance']
+        )
+
+    portfolio = Portfolio(
+        user_id=portfolio_data['user_id'],
+        wallets=wallets
+    )
+
+    print(f'Портфель пользователя {user.username} (база: {base})')
+
+    if not portfolio.wallets:
+        print('Кошельков пока нет')
+        return
+    
+    for currency_code, wallet in portfolio.wallets.items():
+        wallet.get_balance_info()
+        print(f' -> {wallet.count_in_base_currency(base)}')
+    
+    print('-' * 40)
+    total = portfolio.get_total_value(base)
+    print(f'ИТОГО: {total} {base}')
