@@ -3,6 +3,7 @@ from datetime import datetime
 
 from exchange_rates import exchange_rates
 
+
 class User:
     def __init__(self, 
                 user_id: int, 
