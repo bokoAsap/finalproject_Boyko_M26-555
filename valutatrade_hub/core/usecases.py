@@ -1,9 +1,9 @@
 import secrets
-from datetime import datetime
+from datetime import datetime, timezone
 
 import utils
-from models import Portfolio, User, Wallet
 from exchange_rates import exchange_rates
+from models import Portfolio, User, Wallet
 
 
 def user_to_dict(user: User):
@@ -215,7 +215,7 @@ def buy(user: User|None, currency:str, amount: float):
 
     if not isinstance(currency, str):
         raise TypeError('Код валюты строка')
-    if currency is not None or len(currency) != 3 or not currency.isalpha() or not currency.isupper():
+    if len(currency) != 3 or not currency.isalpha() or not currency.isupper():
         raise ValueError('Неправильный код валюты')
     
     if amount <= 0:
@@ -255,7 +255,7 @@ def sell(user: User|None, currency:str, amount: float):
 
     if not isinstance(currency, str):
         raise TypeError('Код валюты строка')
-    if currency is not None or len(currency) != 3 or not currency.isalpha() or not currency.isupper():
+    if len(currency) != 3 or not currency.isalpha() or not currency.isupper():
         raise ValueError('Неправильный код валюты')
     
     if amount <= 0:
@@ -320,5 +320,5 @@ def get_rate(source:str, to:str):
         utils.save_data('rates', rates)
 
 
-    print(f'Курс {to}→{sourse}: {course:.2f} (обновлено: {updated_at.isoformat()})')
-    print(f'Обратный курс {sourse}→{to}: {(1 / course):.2f}')
+    print(f'Курс {to}→{source}: {course:.2f} (обновлено: {updated_at.isoformat()})')
+    print(f'Обратный курс {source}→{to}: {(1 / course):.2f}')
