@@ -1,14 +1,7 @@
 import hashlib
 from datetime import datetime
 
-exchange_rates = {
-    'USD': 1.0,
-    'RUB': 0.01,
-    'EUR': 1.23,
-    'GBP': 0.75,
-    'CNY': 0.15,
-    'JPY': 0.0063
-}
+from exchange_rates import exchange_rates
 
 class User:
     def __init__(self, 
