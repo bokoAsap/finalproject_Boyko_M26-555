@@ -3,6 +3,7 @@ from datetime import datetime
 
 import utils
 from models import Portfolio, User, Wallet
+from exchange_rates import exchange_rates
 
 
 def user_to_dict(user: User):
@@ -214,7 +215,7 @@ def buy(user: User|None, currency:str, amount: float):
 
     if not isinstance(currency, str):
         raise TypeError('Код валюты строка')
-    if len(currency) != 3 or not currency.isalpha() or not currency.isupper():
+    if currency is not None or len(currency) != 3 or not currency.isalpha() or not currency.isupper():
         raise ValueError('Неправильный код валюты')
     
     if amount <= 0:
@@ -254,7 +255,7 @@ def sell(user: User|None, currency:str, amount: float):
 
     if not isinstance(currency, str):
         raise TypeError('Код валюты строка')
-    if len(currency) != 3 or not currency.isalpha() or not currency.isupper():
+    if currency is not None or len(currency) != 3 or not currency.isalpha() or not currency.isupper():
         raise ValueError('Неправильный код валюты')
     
     if amount <= 0:
@@ -273,3 +274,51 @@ def sell(user: User|None, currency:str, amount: float):
     print(f'Продажа выполнена: {amount} {currency} по курсу 59800.00 USD/{currency}')
     print('Изменения в портфеле:')
     print(f'- {currency}: было {last_balance} → стало {wallet.balance}')
+
+def get_rate(source:str, to:str):
+    """
+    Назначение: получить текущий курс одной валюты к другой.
+    Шаги:
+    Проверить валидность кодов валют (верхний регистр, не пустые).
+    Попробовать взять курс из локального кеша rates.json:
+    Если курс свежий (например, моложе 5 минут) — показать его.
+    Иначе — запросить у Parser Service (или использовать заглушку) → обновить кеш.
+    Показать курс и метку времени.
+    """
+    for currency in [source, to]:
+        if not isinstance(currency, str):
+            raise TypeError('Код валюты должен быть строкой')
+        if len(currency) != 3 or not currency.isalpha() or not currency.isupper():
+            raise ValueError('Неправильный код валюты')
+    
+    rates = utils.load_data('rates')
+
+    pair = f'{source}_{to}'
+    rate = rates.get(pair)
+
+    now = datetime.now(timezone.utc)
+
+    course = None
+    updated_at = None
+
+    if rate is not None:
+        updated_at = datetime.fromisoformat(rate['updated_at'])
+        diff = (now - updated_at).total_seconds() / 60
+
+        if 0 <= diff <= 5:
+            course = rate['rate']
+    if course is None:
+        course = exchange_rates[source] / exchange_rates[to]
+
+        updated_at = now
+        
+        rates[pair] = {
+            'rate': course,
+            'updated_at': updated_at.isoformat()
+        }
+
+        utils.save_data('rates', rates)
+
+
+    print(f'Курс {to}→{sourse}: {course:.2f} (обновлено: {updated_at.isoformat()})')
+    print(f'Обратный курс {sourse}→{to}: {(1 / course):.2f}')
