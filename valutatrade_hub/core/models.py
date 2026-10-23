@@ -1,8 +1,8 @@
 import hashlib
 from datetime import datetime
 
-from exchange_rates import exchange_rates
 from exceptions import InsufficientFundsError
+from exchange_rates import exchange_rates
 
 
 class User:

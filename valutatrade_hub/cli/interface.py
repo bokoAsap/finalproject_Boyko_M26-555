@@ -3,6 +3,7 @@ import shlex
 
 from core import exceptions, usecases
 
+
 def main():
     """
     Единственной точкой входа для пользовательских команд
@@ -115,7 +116,7 @@ def main():
 
     get_rate_parser.add_argument(
         "--from",
-        dest=source,
+        dest="source",
         type=str,
         required=True,
         help="Исходная валюта"
@@ -143,7 +144,7 @@ def main():
 
             match args.command:
                 case 'register':
-                    res = usecases.register(
+                    usecases.register(
                         username=args.username,
                         password=args.password
                     ) 
@@ -154,23 +155,24 @@ def main():
                     )
                 case 'show-portfolio':
                     usecases.show_portfolio(
+                        user=user,
                         base=args.base
                     )
                 case 'buy':
                     usecases.buy(
-                        user=result,
+                        user=user,
                         currency=args.currency,
                         amount=args.amount
                     )
                 case 'sell':
                     usecases.sell(
-                        user=result,
+                        user=user,
                         currency=args.currency,
                         amount=args.amount
                     )
                 case 'get-rate':
                     usecases.get_rate(
-                        source=args.from,
+                        source=args.source,
                         to=args.to
                     )
                 case _:
