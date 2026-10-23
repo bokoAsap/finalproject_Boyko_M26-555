@@ -1,0 +1,8 @@
+{
+    "USERS_FILE": "data/users.json",
+    "RATES_FILE": "data/rates.json",
+    "RATES_TTL_SECONDS": 300,
+    "DEFAULT_CURRENCY": "USD",
+    "LOG_FILE": "logs/valuta.log",
+    "LOG_FORMAT": "%(asctime)s - %(levelname)s - %(message)s"
+}
