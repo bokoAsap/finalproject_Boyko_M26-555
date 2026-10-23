@@ -4,6 +4,7 @@ from pathlib import Path
 class SettingsLoader():
     __instanse = None
 
+    # new потому что делаю в первый раз и нужно было разобраться в простых вещах
     def __new__(cls, *args, **kwargs):
         if cls.__instanse is None:
             cls.__instanse = super().__new__(cls)
