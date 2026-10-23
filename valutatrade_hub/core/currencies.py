@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+from exceptions import CurrencyNotFoundErrors
 
 class Currency(ABC):
     def __init__(self,
@@ -89,5 +89,5 @@ class Factory():
         try: 
             return currencies[code]
         except KeyError:
-            raise CurrencyNotFoundError(f'Код валюты {code} неизвестен')
+            raise CurrencyNotFoundError(code=code) from None
     

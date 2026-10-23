@@ -2,6 +2,7 @@ import hashlib
 from datetime import datetime
 
 from exchange_rates import exchange_rates
+from exceptions import InsufficientFundsError
 
 
 class User:
@@ -121,7 +122,11 @@ class Wallet:
         if self.balance >= amount:
             self.balance -= amount
         else:
-            raise ValueError('Сумма снятия не может быть больше баланса')
+            raise InsufficientFundsError(
+                available=self.balance,
+                required=amount,
+                code=self.currency_code
+            )
     
     def get_balance_info(self):
         """

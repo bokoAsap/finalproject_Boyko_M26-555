@@ -1,7 +1,7 @@
 import argparse
 import shlex
 
-from core import usecases
+from core import exceptions, usecases
 
 def main():
     """
@@ -176,6 +176,11 @@ def main():
                 case _:
                     parser.error('Неизвестная команда')
                     return
-
+        except (
+            exceptions.InsufficientFundsError,
+            exceptions.CurrencyNotFoundError,
+            exceptions.ApiRequestError
+        ) as e:
+            print(e)
         except Exception as e:
             print(f'Ошибка: {e}')
