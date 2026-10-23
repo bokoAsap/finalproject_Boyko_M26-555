@@ -3,10 +3,20 @@ from datetime import datetime, timezone
 
 import utils
 from exchange_rates import exchange_rates
+from infra import settings
 from models import Portfolio, User, Wallet
 
+settings = SettingsLoader()
+users_path = settings.get("USERS_FILE")
+portfolios_path = settings.get("PORTFOLIOS_FILE")
+rates_path = settings.get("RATES_FILE")
+rates_ttl = settings.get("RATES_TTL_SECONDS")
+default_currency = settings.get("DEFAULT_CURRENCY")
 
 def user_to_dict(user: User):
+    """
+    Преобразование объекта User к словарю
+    """
     return {
         'user_id': user.user_id,
         'username': user.username,
@@ -16,6 +26,9 @@ def user_to_dict(user: User):
     }
 
 def portfolio_to_dict(portfolio: Portfolio):
+    """
+    Преобразование объекта Portfolio к словарю
+    """
     return {
         'user_id': portfolio.user_id,
         'wallets': portfolio.wallets
@@ -86,8 +99,7 @@ def register(username: str, password: str):
     Создать пустой портфель (portfolios.json: user_id + пустой словарь кошельков).
     Вернуть сообщение об успехе.
     """
-
-    users = utils.load_data('users')
+    users = utils.load_data(users_path)
     for user in users:
         if user['username'] == username:
             raise ValueError(f'Имя пользователя {username} уже занято')
@@ -115,18 +127,18 @@ def register(username: str, password: str):
 
     user_to_save = user_to_dict(new_user)
     users.append(user_to_save)
-    utils.save_data('users', users)
+    utils.save_data(users_path, users)
 
     new_portfolio = Portfolio(
         user_id=user_id,
         wallets={}
     )
 
-    portfolios = utils.load_data('portfolios')
+    portfolios = utils.load_data(portfolios_path)
 
     portfolio_to_save = portfolio_to_dict(new_portfolio)
     portfolios.append(portfolio_to_save)
-    utils.save_data('portfolios', portfolios)
+    utils.save_data(portfolios_path, portfolios)
 
     print(f'Пользователь {username} зарегистрирован (id={new_user.user_id})')
     print('Войдите: login --username {username} --password ****')
@@ -139,7 +151,8 @@ def login(username: str, password:str):
     Найти пользователя по username.
     Сравнить хеш пароля.
     """
-    users = utils.load_data('users')
+
+    users = utils.load_data(users_path)
 
     for user in users:
         if user['username'] == username:
@@ -163,7 +176,7 @@ def login(username: str, password:str):
     print(f"Вы вошли как '{username}'")    
     return user
 
-def show_portfolio(user: User|None, base: str ='USD'):
+def show_portfolio(user: User|None, base: str = default_currency):
     """ Назначение: показать все кошельки и итоговую стоимость в базовой валюте 
     (по умолчанию USD).
     Шаги:
@@ -203,10 +216,7 @@ def buy(user: User|None, currency:str, amount: float):
     Валидировать currency (формат) и amount > 0.
     Если в портфеле нет такого кошелька — автоматически создать 
     (как делает add_currency).
-    Увеличить баланс кошелька на amount.
-    Опционально (по желанию) вести «расчётную стоимость» покупки для отчёта:
-    Получить текущий курс currency → base.
-    Посчитать стоимость amount * rate и вывести в итог.
+    Увеличить баланс кошелька на amount
     """
     if user is None:
         raise PermissionError('Сначала войдите в аккаунт')
@@ -245,8 +255,7 @@ def sell(user: User|None, currency:str, amount: float):
     Проверить логин.
     Валидировать входные данные.
     Проверить, что кошелёк существует и на нём достаточно средств.
-    Уменьшить баланс.
-    Опционально: начислить эквивалент в USD (если ведёте кошелёк USD).
+    Уменьшить баланс
     """
     if user is None:
         raise PermissionError('Сначала войдите в аккаунт')
@@ -303,9 +312,9 @@ def get_rate(source:str, to:str):
 
     if rate is not None:
         updated_at = datetime.fromisoformat(rate['updated_at'])
-        diff = (now - updated_at).total_seconds() / 60
+        diff = (now - updated_at).total_seconds() 
 
-        if 0 <= diff <= 5:
+        if 0 <= diff <= rates_ttl:
             course = rate['rate']
     if course is None:
         course = exchange_rates[source] / exchange_rates[to]
