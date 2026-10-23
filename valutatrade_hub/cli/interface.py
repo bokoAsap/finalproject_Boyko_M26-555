@@ -176,11 +176,13 @@ def main():
                 case _:
                     parser.error('Неизвестная команда')
                     return
-        except (
-            exceptions.InsufficientFundsError,
-            exceptions.CurrencyNotFoundError,
-            exceptions.ApiRequestError
-        ) as e:
+        except exceptions.InsufficientFundsError as e:
             print(e)
+        except exceptions.CurrencyNotFoundError as e:
+            print(e)
+            print('Используйте get-rate, чтобы увидеть доступные валюты')
+        except exceptions.ApiRequestError as e:
+            print(e)
+            print('Проверьте подключение или попробуйте позднее')
         except Exception as e:
             print(f'Ошибка: {e}')
