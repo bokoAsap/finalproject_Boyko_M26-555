@@ -2,9 +2,10 @@ import secrets
 from datetime import datetime, timezone
 
 import utils
+from decorator import log_action
 from exchange_rates import exchange_rates
 from infra import settings
-from models import Portfolio, User, Wallet
+from models import Portfolio, User
 
 settings = settings.SettingsLoader()
 users_path = settings.get("USERS_FILE")
@@ -13,6 +14,7 @@ rates_path = settings.get("RATES_FILE")
 rates_ttl = settings.get("RATES_TTL_SECONDS")
 default_currency = settings.get("DEFAULT_CURRENCY")
 
+@log_action('register')
 def register(username: str, password: str):
     """
     Назначение: создать нового пользователя.
@@ -70,6 +72,8 @@ def register(username: str, password: str):
     print('Войдите: login --username {username} --password ****')
     return new_user
 
+
+@log_action('login')
 def login(username: str, password:str):
     """
     Назначение: войти и зафиксировать текущую сессию.
@@ -134,6 +138,7 @@ def show_portfolio(user: User|None, base: str = default_currency):
     total = portfolio.get_total_value(base)
     print(f'ИТОГО: {total} {base}')
 
+@log_action('buy')
 def buy(user: User|None, currency:str, amount: float):
     """
     Назначение: купить валюту.
@@ -174,6 +179,7 @@ def buy(user: User|None, currency:str, amount: float):
     print('Изменения в портфеле:')
     print(f'- {wallet.currency_code}: было {last_balance} → стало {wallet.balance}')
 
+@log_action('sell')
 def sell(user: User|None, currency:str, amount: float):
     """
     Назначение: продать указанную валюту.
