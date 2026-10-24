@@ -1,5 +1,5 @@
 import json
-from pathlib import Path
+
 
 class SettingsLoader():
     __instanse = None
@@ -22,5 +22,5 @@ class SettingsLoader():
         with open(config_path, "r", encoding='utf-8') as file:
             self._config = json.load(file)
 
-    def get(self, key: str, default: Any = None):
+    def get(self, key: str, default = None):
         return self._config.get(key, default)
