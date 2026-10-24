@@ -1,5 +1,7 @@
 import json
 
+from models import Portfolio, User, Wallet
+
 
 def load_data(file_name: str):
     """
@@ -43,7 +45,7 @@ def load_portfolio(user_id: int):
     """
     portfolio_data = None
 
-    portfolios = utils.load_data('portfolios')
+    portfolios = load_data('portfolios')
 
     for portfolio in portfolios:
         if portfolio['user_id'] == user_id:
@@ -72,7 +74,7 @@ def save_portfolio(portfolio: Portfolio):
     """
     Сохранение портфеля 
     """
-    portfolios = utils.load_data('portfolios')
+    portfolios = load_data('portfolios')
 
     portfolio_data = {
         'user_id': portfolio.user_id,
@@ -85,7 +87,7 @@ def save_portfolio(portfolio: Portfolio):
     for index, saved_portfolio in enumerate(portfolios):
         if saved_portfolio['user_id'] == portfolio.user_id:
             portfolios[index] = portfolio_data
-            utils.save_data('portfolios', portfolios)
+            save_data('portfolios', portfolios)
             return
 
     raise ValueError('Портфель пользователя не найден')
