@@ -1,5 +1,6 @@
 import logging
 from logging.handlers import RotatingFileHandler
+
 from infra import settings
 
 settings = settings.SettingsLoader()
