@@ -28,12 +28,12 @@ def get_wallet_balance(user, currency):
 
 
 def log_action(action: str, verbose: bool = False):
+    action = action.upper()
     def decorator(func):
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
 
-            action = action.upper()
             user = args[0]
 
             balance_before = None
@@ -80,7 +80,10 @@ def log_action(action: str, verbose: bool = False):
             except Exception as e:
 
                 message = f'action = {action} username = '
-                error_message = f' result=ERROR error_type={type(e).__name__} error_message={str(e)}'
+                error_message = (
+                    f' result=ERROR error_type={type(e).__name__}' 
+                    f'error_message={str(e)}'
+                )
 
                 if action in ['REGISTER', 'LOGIN']:
                     logger.info(
