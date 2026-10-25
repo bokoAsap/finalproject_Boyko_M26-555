@@ -97,6 +97,7 @@ def login(username: str, password:str):
 
     users = utils.load_data(users_path)
 
+    user_data = None
     for user in users:
         if user['username'] == username:
             user_data = user
@@ -104,19 +105,24 @@ def login(username: str, password:str):
 
     if user_data is None:
         raise ValueError('Неверное имя пользователя')
+
+    reg_date = datetime.fromisoformat(
+        user_data['registration_date']
+        )
     
     user = User(
         user_id=user_data['user_id'],
         username=user_data['username'],
         hashed_password=user_data['hashed_password'],
         salt=user_data['salt'], 
-        reg_date=user_data['registration_date']
+        reg_date=reg_date
     )
 
     if not user.verify_password(password):
         raise ValueError('Неверное имя пользователя или пароль')
     
-    print(f"Вы вошли как '{username}'")    
+    print(f"Вы вошли как '{username}'")   
+     
     return user
 
 def show_portfolio(user: User|None, base: str = default_currency):
