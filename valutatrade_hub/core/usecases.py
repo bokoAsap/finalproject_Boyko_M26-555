@@ -2,6 +2,7 @@ import secrets
 from datetime import datetime, timezone
 
 import utils
+from currencies import Factory
 from decorator import log_action
 from exchange_rates import exchange_rates
 from infra import settings
@@ -122,7 +123,7 @@ def login(username: str, password:str):
         raise ValueError('Неверное имя пользователя или пароль')
     
     print(f"Вы вошли как '{username}'")   
-     
+
     return user
 
 def show_portfolio(user: User|None, base: str = default_currency):
@@ -137,7 +138,11 @@ def show_portfolio(user: User|None, base: str = default_currency):
     Показать сумму по всем кошелькам в base.
     """
     if user is None:
-        raise PermissionError('Сначала войдите в аккаунт')
+        raise PermissionError(
+            'Сначала войдите в аккаунт'
+            )
+    
+    Factory.get_currency(base)
     
     user_id = user.user_id
 
@@ -154,6 +159,7 @@ def show_portfolio(user: User|None, base: str = default_currency):
         print(f' -> {wallet.count_in_base_currency(base)}')
     
     print('-' * 40)
+    
     total = portfolio.get_total_value(base)
     print(f'ИТОГО: {total} {base}')
 
