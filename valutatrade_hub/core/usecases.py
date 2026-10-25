@@ -1,18 +1,16 @@
 import secrets
 from datetime import datetime, timezone
 
-import utils
 from currencies import Factory
 from decorator import log_action
 from exchange_rates import exchange_rates
 from exceptions import ApiRequestError
-from infra import settings
+from infra import settings, database
 from models import Portfolio, User
 
+db = database.DatabaseManager()
+
 settings = settings.SettingsLoader()
-users_path = settings.get("USERS_FILE")
-portfolios_path = settings.get("PORTFOLIOS_FILE")
-rates_path = settings.get("RATES_FILE")
 rates_ttl = settings.get("RATES_TTL_SECONDS")
 default_currency = settings.get("DEFAULT_CURRENCY")
 
@@ -29,7 +27,7 @@ def register(username: str, password: str):
     Создать пустой портфель (portfolios.json: user_id + пустой словарь кошельков).
     Вернуть сообщение об успехе.
     """
-    users = utils.load_data(users_path)
+    users = db.load()
 
     for user in users:
         if user['username'] == username:
@@ -54,7 +52,7 @@ def register(username: str, password: str):
      
     new_user.hashed_password = password 
 
-    user_to_save = utils.user_to_dict(new_user)
+    user_to_save = db.user_to_dict(new_user)
     users.append(user_to_save)
 
     new_portfolio = Portfolio(
@@ -62,14 +60,14 @@ def register(username: str, password: str):
         wallets={}
     )
 
-    portfolios = utils.load_data(portfolios_path)
+    portfolios = db.load_portfolio()
 
-    portfolio_to_save = utils.portfolio_to_dict(new_portfolio)
+    portfolio_to_save = db.portfolio_to_dict(new_portfolio)
     portfolios.append(portfolio_to_save)
 
     try:
-        utils.save_data(portfolios_path, portfolios)
-        utils.save_data(users_path, users)
+        db.save_portfolio(portfolios)
+        db.save_user(users)
     except Exception as e:
         raise OSError(
             f'Не удалось создать пользователя'
@@ -97,7 +95,7 @@ def login(username: str, password:str):
     Сравнить хеш пароля.
     """
 
-    users = utils.load_data(users_path)
+    users = db.load_user()
 
     user_data = None
     for user in users:
@@ -147,7 +145,7 @@ def show_portfolio(user: User|None, base: str = default_currency):
     
     user_id = user.user_id
 
-    portfolio = utils.load_portfolio(user_id)
+    portfolio = bd.load_portfolio_by_id(user_id)
 
     print(f'Портфель пользователя {user.username} (база: {base})')
 
@@ -191,7 +189,7 @@ def buy(user: User|None, currency:str, amount: float):
     if not isinstance(amount, (int, float)) or amount <= 0:
         raise ValueError('Сумма должна быть положительным числом')
 
-    portfolio = utils.load_portfolio(user_id)
+    portfolio = db.load_portfolio_by_id(user_id)
 
     if currency not in portfolio.wallets:
         portfolio.add_currency(currency)
@@ -202,7 +200,7 @@ def buy(user: User|None, currency:str, amount: float):
 
     wallet.deposit(amount)
 
-    utils.save_portfolio(portfolio)
+    db.save_portfolio(portfolio)
 
     print(
         f'Покупка выполнена: {amount} {currency} '
@@ -241,7 +239,7 @@ def sell(user: User|None, currency:str, amount: float):
     if not isinstance(amount, (int, float)) or amount <= 0:
         raise ValueError('Сумма должна быть положительным числом')
     
-    portfolio = utils.load_portfolio(user_id)
+    portfolio = db.load_portfolio_by_id(user_id)
     
     wallet = portfolio.get_wallet(currency)
 
@@ -249,7 +247,7 @@ def sell(user: User|None, currency:str, amount: float):
 
     wallet.withdraw(amount)
 
-    utils.save_portfolio(portfolio)
+    db.save_portfolio(portfolio)
     
     print(
         f'Продажа выполнена: {amount} {currency}'
@@ -272,7 +270,7 @@ def get_rate(source:str, to:str):
     Factory.get_currency(source)
     Factory.get_currency(to)
     
-    rates = utils.load_data(rates_path)
+    rates = bd.load_rate(rates_path)
 
     pair = f'{source}_{to}'
     rate = rates.get(pair)
@@ -301,7 +299,7 @@ def get_rate(source:str, to:str):
             'updated_at': updated_at.isoformat()
         }
 
-        utils.save_data(rates_path, rates)
+        db.save_rate(rates_path, rates)
 
 
     print(
