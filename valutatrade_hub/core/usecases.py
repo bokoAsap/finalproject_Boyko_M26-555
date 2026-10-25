@@ -159,7 +159,7 @@ def show_portfolio(user: User|None, base: str = default_currency):
         print(f' -> {wallet.count_in_base_currency(base)}')
     
     print('-' * 40)
-    
+
     total = portfolio.get_total_value(base)
     print(f'ИТОГО: {total} {base}')
 
@@ -181,11 +181,14 @@ def buy(user: User|None, currency:str, amount: float):
 
     if not isinstance(currency, str):
         raise TypeError('Код валюты строка')
+    
     if len(currency) != 3 or not currency.isalpha() or not currency.isupper():
         raise ValueError('Неправильный код валюты')
     
-    if amount <= 0:
-        raise ValueError('Сумма должны быть положительной')
+    Factory.get_currency(currency)
+    
+    if not isinstance(amount, (int, float)) and amount <= 0:
+        raise ValueError('Сумма должны быть положительным числом')
 
     portfolio = utils.load_portfolio(user_id)
 
@@ -200,9 +203,16 @@ def buy(user: User|None, currency:str, amount: float):
 
     utils.save_portfolio(portfolio)
 
-    print(f'Покупка выполнена: {amount} {currency} по курсу 59300.00 USD/{currency}')
+    print(
+        f'Покупка выполнена: {amount} {currency} '
+    )
+        
     print('Изменения в портфеле:')
-    print(f'- {wallet.currency_code}: было {last_balance} → стало {wallet.balance}')
+
+    print(
+        f'- {wallet.currency_code}: '
+        f'было {last_balance} → стало {wallet.balance}'
+    )
 
 @log_action('sell')
 def sell(user: User|None, currency:str, amount: float):
