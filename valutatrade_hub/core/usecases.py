@@ -28,10 +28,10 @@ def register(username: str, password: str):
     Вернуть сообщение об успехе.
     """
     users = utils.load_data(users_path)
+
     for user in users:
         if user['username'] == username:
-            raise ValueError(f'Имя пользователя {username} уже занято')
-    
+            raise ValueError(f'Имя пользователя {username} уже занято') 
 
     user_id = max(
         (user['user_id'] for user in users),
@@ -49,13 +49,11 @@ def register(username: str, password: str):
         salt=salt,
         reg_date=now
     )
-
-    new_user.username = username        
+     
     new_user.hashed_password = password 
 
     user_to_save = utils.user_to_dict(new_user)
     users.append(user_to_save)
-    utils.save_data(users_path, users)
 
     new_portfolio = Portfolio(
         user_id=user_id,
@@ -66,10 +64,25 @@ def register(username: str, password: str):
 
     portfolio_to_save = utils.portfolio_to_dict(new_portfolio)
     portfolios.append(portfolio_to_save)
-    utils.save_data(portfolios_path, portfolios)
 
-    print(f'Пользователь {username} зарегистрирован (id={new_user.user_id})')
-    print('Войдите: login --username {username} --password ****')
+    try:
+        utils.save_data(portfolios_path, portfolios)
+        utils.save_data(users_path, users)
+    except Exception as e:
+        raise OSError(
+            f'Не удалось создать пользователя'
+            f'Ошибка: {e}'
+        )
+
+    print(
+        f'Пользователь {username} зарегистрирован '
+        f'(id={new_user.user_id})'
+    )
+    print(
+        f'Войдите: login --username {username} '
+        f'--password ****'
+    )
+
     return new_user
 
 
