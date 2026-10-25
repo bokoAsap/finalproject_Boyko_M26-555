@@ -1,6 +1,7 @@
 from core import utils
 from infra.settings import SettingsLoader
 
+
 class DatabaseManager():
     __instance = None
 
@@ -43,8 +44,8 @@ class DatabaseManager():
     def save_portfolio(self, portfolios):
         return utils.save_portfolio(portfolios)
 
-    def user_to_dict(self, user):
+    def user_to_dict(self, users):
         return utils.user_to_dict(users)
 
-    def portfolio_to_dict(self, portfolio):
+    def portfolio_to_dict(self, portfolios):
         return utils.portfolio_to_dict(portfolios)

@@ -3,9 +3,9 @@ from datetime import datetime, timezone
 
 from currencies import Factory
 from decorator import log_action
-from exchange_rates import exchange_rates
 from exceptions import ApiRequestError
-from infra import settings, database
+from exchange_rates import exchange_rates
+from infra import database, settings
 from models import Portfolio, User
 
 db = database.DatabaseManager()
@@ -145,7 +145,7 @@ def show_portfolio(user: User|None, base: str = default_currency):
     
     user_id = user.user_id
 
-    portfolio = bd.load_portfolio_by_id(user_id)
+    portfolio = db.load_portfolio_by_id(user_id)
 
     print(f'Портфель пользователя {user.username} (база: {base})')
 
@@ -270,7 +270,7 @@ def get_rate(source:str, to:str):
     Factory.get_currency(source)
     Factory.get_currency(to)
     
-    rates = bd.load_rate(rates_path)
+    rates = db.load_rate()
 
     pair = f'{source}_{to}'
     rate = rates.get(pair)
@@ -299,7 +299,7 @@ def get_rate(source:str, to:str):
             'updated_at': updated_at.isoformat()
         }
 
-        db.save_rate(rates_path, rates)
+        db.save_rate(rates)
 
 
     print(
