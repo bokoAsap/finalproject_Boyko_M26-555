@@ -5,6 +5,7 @@ import utils
 from currencies import Factory
 from decorator import log_action
 from exchange_rates import exchange_rates
+from exceptions import ApiRequestError
 from infra import settings
 from models import Portfolio, User
 
@@ -41,7 +42,7 @@ def register(username: str, password: str):
 
     salt = secrets.token_hex(16)
 
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
 
     new_user = User(
         user_id=user_id,
@@ -187,7 +188,7 @@ def buy(user: User|None, currency:str, amount: float):
     
     Factory.get_currency(currency)
     
-    if not isinstance(amount, (int, float)) and amount <= 0:
+    if not isinstance(amount, (int, float)) or amount <= 0:
         raise ValueError('Сумма должна быть положительным числом')
 
     portfolio = utils.load_portfolio(user_id)
@@ -237,7 +238,7 @@ def sell(user: User|None, currency:str, amount: float):
     
     Factory.get_currency(currency)
     
-    if not isinstance(amount, (int, float)) and amount <= 0:
+    if not isinstance(amount, (int, float)) or amount <= 0:
         raise ValueError('Сумма должна быть положительным числом')
     
     portfolio = utils.load_portfolio(user_id)
@@ -268,13 +269,10 @@ def get_rate(source:str, to:str):
     Иначе — запросить у Parser Service (или использовать заглушку) → обновить кеш.
     Показать курс и метку времени.
     """
-    for currency in [source, to]:
-        if not isinstance(currency, str):
-            raise TypeError('Код валюты должен быть строкой')
-        if len(currency) != 3 or not currency.isalpha() or not currency.isupper():
-            raise ValueError('Неправильный код валюты')
+    Factory.get_currency(source)
+    Factory.get_currency(to)
     
-    rates = utils.load_data('rates')
+    rates = utils.load_data(rates_path)
 
     pair = f'{source}_{to}'
     rate = rates.get(pair)
@@ -291,7 +289,10 @@ def get_rate(source:str, to:str):
         if 0 <= diff <= rates_ttl:
             course = rate['rate']
     if course is None:
-        course = exchange_rates[source] / exchange_rates[to]
+        try:
+            course = exchange_rates[source] / exchange_rates[to]
+        except Exception as e:
+            raise ApiRequestError(e)
 
         updated_at = now
         
@@ -300,8 +301,16 @@ def get_rate(source:str, to:str):
             'updated_at': updated_at.isoformat()
         }
 
-        utils.save_data('rates', rates)
+        utils.save_data(rates_path, rates)
 
 
-    print(f'Курс {to}→{source}: {course:.2f} (обновлено: {updated_at.isoformat()})')
-    print(f'Обратный курс {source}→{to}: {(1 / course):.2f}')
+    print(
+        f'Курс {source}→{to}: '
+        f'{course:.2f} (обновлено: '
+        f'{updated_at.isoformat()})'
+    )
+    print(f'Обратный курс {to}→{source}: '
+        f'{(1 / course):.2f}'
+    )
+
+    return course, updated_at
