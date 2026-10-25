@@ -188,7 +188,7 @@ def buy(user: User|None, currency:str, amount: float):
     Factory.get_currency(currency)
     
     if not isinstance(amount, (int, float)) and amount <= 0:
-        raise ValueError('Сумма должны быть положительным числом')
+        raise ValueError('Сумма должна быть положительным числом')
 
     portfolio = utils.load_portfolio(user_id)
 
@@ -231,11 +231,14 @@ def sell(user: User|None, currency:str, amount: float):
 
     if not isinstance(currency, str):
         raise TypeError('Код валюты строка')
+    
     if len(currency) != 3 or not currency.isalpha() or not currency.isupper():
         raise ValueError('Неправильный код валюты')
     
-    if amount <= 0:
-        raise ValueError('Сумма должны быть положительной')
+    Factory.get_currency(currency)
+    
+    if not isinstance(amount, (int, float)) and amount <= 0:
+        raise ValueError('Сумма должна быть положительным числом')
     
     portfolio = utils.load_portfolio(user_id)
     
@@ -247,9 +250,13 @@ def sell(user: User|None, currency:str, amount: float):
 
     utils.save_portfolio(portfolio)
     
-    print(f'Продажа выполнена: {amount} {currency} по курсу 59800.00 USD/{currency}')
+    print(
+        f'Продажа выполнена: {amount} {currency}'
+    )
     print('Изменения в портфеле:')
-    print(f'- {currency}: было {last_balance} → стало {wallet.balance}')
+    print(f'- {currency}: '
+        f'было {last_balance} → стало {wallet.balance}'
+    )
 
 def get_rate(source:str, to:str):
     """
