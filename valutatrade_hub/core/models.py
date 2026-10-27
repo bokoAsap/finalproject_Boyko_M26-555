@@ -153,7 +153,7 @@ class Portfolio:
         self._wallets = wallets
     
     @property
-    def user(self):
+    def user_id(self):
         return self._user_id
     
     @property
