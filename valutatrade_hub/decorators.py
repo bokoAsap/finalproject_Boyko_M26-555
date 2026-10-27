@@ -1,7 +1,7 @@
 import functools
 import logging
 
-from core import utils
+from valutatrade_hub.core import utils
 
 logger = logging.getLogger("ValutaTrade")
 
@@ -78,6 +78,8 @@ def log_action(action: str, verbose: bool = False):
                 return result
 
             except Exception as e:
+                import traceback
+                traceback.print_exc()
 
                 message = f'action = {action} username = '
                 error_message = (

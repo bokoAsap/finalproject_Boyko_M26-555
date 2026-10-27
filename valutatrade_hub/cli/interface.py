@@ -1,10 +1,10 @@
 import argparse
 import shlex
 
-from core import exceptions, usecases
+from valutatrade_hub.core import exceptions, usecases
 
 
-def main():
+def run():
     """
     Единственной точкой входа для пользовательских команд
     """
@@ -145,36 +145,38 @@ def main():
             match args.command:
                 case 'register':
                     usecases.register(
-                        username=args.username,
-                        password=args.password
+                        args.username,
+                        args.password
                     ) 
                 case 'login':
                     user = usecases.login(
-                        username=args.username,
-                        password=args.password
+                        args.username,
+                        args.password
                     )
                 case 'show-portfolio':
                     usecases.show_portfolio(
-                        user=user,
-                        base=args.base
+                        user,
+                        args.base
                     )
                 case 'buy':
                     usecases.buy(
-                        user=user,
-                        currency=args.currency,
-                        amount=args.amount
+                        user,
+                        args.currency,
+                        args.amount
                     )
                 case 'sell':
                     usecases.sell(
-                        user=user,
-                        currency=args.currency,
-                        amount=args.amount
+                        user,
+                        args.currency,
+                        args.amount
                     )
                 case 'get-rate':
                     usecases.get_rate(
-                        source=args.source,
-                        to=args.to
+                        args.source,
+                        args.to
                     )
+                case 'exit':
+                    return
                 case _:
                     parser.error('Неизвестная команда')
                     return

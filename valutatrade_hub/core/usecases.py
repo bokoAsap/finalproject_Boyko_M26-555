@@ -1,12 +1,12 @@
 import secrets
 from datetime import datetime, timezone
 
-from currencies import Factory
-from decorator import log_action
-from exceptions import ApiRequestError
-from exchange_rates import exchange_rates
-from infra import database, settings
-from models import Portfolio, User
+from .currencies import Factory
+from .exceptions import ApiRequestError
+from .exchange_rates import exchange_rates
+from .models import Portfolio, User
+from valutatrade_hub.decorators import log_action
+from valutatrade_hub.infra import database, settings
 
 db = database.DatabaseManager()
 
@@ -27,7 +27,7 @@ def register(username: str, password: str):
     Создать пустой портфель (portfolios.json: user_id + пустой словарь кошельков).
     Вернуть сообщение об успехе.
     """
-    users = db.load()
+    users = db.load_user()
 
     for user in users:
         if user['username'] == username:

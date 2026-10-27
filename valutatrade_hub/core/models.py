@@ -1,8 +1,8 @@
 import hashlib
 from datetime import datetime
 
-from exceptions import InsufficientFundsError
-from exchange_rates import exchange_rates
+from .exceptions import InsufficientFundsError
+from .exchange_rates import exchange_rates
 
 
 class User:
@@ -43,7 +43,7 @@ class User:
 
     @ hashed_password.setter
     def hashed_password(self, password):
-        if len(password) > 4:
+        if len(password) >= 4:
             self._hashed_password = hashlib.sha256(
                 (password + self.salt).encode('utf-8')
             ).hexdigest()

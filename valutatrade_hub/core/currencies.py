@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from exceptions import CurrencyNotFoundError
+from .exceptions import CurrencyNotFoundError
 
 
 class Currency(ABC):
