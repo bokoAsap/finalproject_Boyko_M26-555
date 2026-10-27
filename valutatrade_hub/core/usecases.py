@@ -269,7 +269,7 @@ def get_rate(source:str, to:str):
     pair = f'{source}_{to}'
     rate = rates.get(pair)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
 
     course = None
     updated_at = None
@@ -280,9 +280,10 @@ def get_rate(source:str, to:str):
 
         if 0 <= diff <= rates_ttl:
             course = rate['rate']
+    
     if course is None:
         try:
-            course = exchange_rates[source] / exchange_rates[to]
+            course = round(exchange_rates[to] / exchange_rates[source], 2)
         except Exception as e:
             raise ApiRequestError(e)
 
@@ -294,7 +295,6 @@ def get_rate(source:str, to:str):
         }
 
         db.save_rate(rates)
-
 
     print(
         f'Курс {source}→{to}: '

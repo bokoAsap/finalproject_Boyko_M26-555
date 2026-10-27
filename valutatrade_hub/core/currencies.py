@@ -24,9 +24,7 @@ class Currency(ABC):
         if not all(word.isalpha() for word in name.split()):
             raise ValueError('Имя валюты может содержать только буквы и пробелы')
     
-        self._name = name
-            
-        
+        self._name = name     
     
     @property
     def code(self):
@@ -54,7 +52,7 @@ class FiatCurrency(Currency):
     def __init__(self, 
                 name: str,
                 code: str,
-                issuing_country: str
+                issuing_country: str | None = None
     ):
         super().__init__(name, code)
         self.issuing_country = issuing_country
@@ -69,12 +67,12 @@ class CryptoCurrency(Currency):
     def __init__(self,
                 name: str,
                 code: str,
-                algorithm: str,
-                market_cap: float 
+                algorithm: str | None = None,
+                market_cap: float | None = None
     ):  
         super().__init__(name, code)
-        self.algorithm = algorithm
-        self.market_cap = market_cap
+        self.algorithm = algorithm 
+        self.market_cap = market_cap 
 
     def get_display_info(self):
         return (
@@ -85,13 +83,64 @@ class CryptoCurrency(Currency):
 class Factory():
     @staticmethod
     def get_currency(code: str):
-        currencies = {
-        "USD": FiatCurrency("US Dollar", "USD", "United States"),
-        "EUR": FiatCurrency("Euro", "EUR", "Eurozone"),
-        "BTC": CryptoCurrency("Bitcoin", "BTC", "SHA-256", 1_000_000),
-    }
-        try: 
-            return currencies[code]
-        except KeyError:
+        fiat = {
+            'USD': {
+                'name': 'US Dollar',
+                'issuing_country': 'United States'
+            }, 
+            'EUR': {
+                'name': 'Euro',
+                'issuing_country': 'Eurozone'
+            }, 
+            'RUB': {
+                'name': 'Russian Ruble',
+                'issuing_country': 'Russian Federation'
+            }, 
+            'GBP': {
+                'name': 'Pound Sterling',
+                'issuing_country': 'United Kingdom'
+            }, 
+            'CNY': {
+                'name': 'Chinese Yuan',
+                'issuing_country': 'China'
+            }, 
+            'JPY': {
+                'name': 'Japanese Yen',
+                'issuing_country': 'Japan'
+            }
+        }
+        crypto = {
+            'BTC': {
+                'name': 'Bitcoin',
+                'algorithm': 'SHA-256',
+                'market_cap': 1.61 * 10**12
+            }, 
+            'ETH': {
+                'name': 'Ethereum',
+                'algorithm': 'PoS',
+                'market_cap': 203 * 10**9
+            }
+        }
+
+        currency = None
+
+        if code in fiat.keys():
+            currency = FiatCurrency(
+                fiat[code]['name'], 
+                code,
+                fiat[code]['issuing_country']
+            )
+
+        elif code in crypto.keys():
+            currency = CryptoCurrency(
+                crypto[code]['name'], 
+                code,
+                crypto[code]['algorithm'],
+                crypto[code]['market_cap'],
+            )
+
+        else:
             raise CurrencyNotFoundError(code=code) from None
+
+        return currency            
     
