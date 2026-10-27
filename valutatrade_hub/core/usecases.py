@@ -234,22 +234,28 @@ def sell(user: User|None, currency:str, amount: float):
         raise ValueError('Сумма должна быть положительным числом')
     
     portfolio = db.load_portfolio_by_id(user_id)
-    
-    wallet = portfolio.get_wallet(currency)
 
-    last_balance = wallet.balance
+    if currency in portfolio.wallets:
+        wallet = portfolio.get_wallet(currency)
 
-    wallet.withdraw(amount)
+        last_balance = wallet.balance
 
-    db.save_portfolio(portfolio)
-    
-    print(
-        f'Продажа выполнена: {amount} {currency}'
-    )
-    print('Изменения в портфеле:')
-    print(f'- {currency}: '
-        f'было {last_balance} → стало {wallet.balance}'
-    )
+        wallet.withdraw(amount)
+
+        db.save_portfolio(portfolio)
+        
+        print(
+            f'Продажа выполнена: {amount} {currency}'
+        )
+        print('Изменения в портфеле:')
+        print(f'- {currency}: '
+            f'было {last_balance} → стало {wallet.balance}'
+        )
+
+    else:
+        raise ValueError(
+            f'Такого кошелька в портфеле пользователя {user.username} нет'
+        )
 
 def get_rate(source:str, to:str):
     """
