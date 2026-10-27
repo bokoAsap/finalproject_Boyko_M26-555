@@ -1,6 +1,6 @@
 import json
 
-from models import Portfolio, User, Wallet
+from .models import Portfolio, User, Wallet
 
 
 def load_data(file_name: str):
@@ -35,46 +35,38 @@ def portfolio_to_dict(portfolio: Portfolio):
     Преобразование объекта Portfolio к словарю
     """
     return {
-        'user_id': portfolio.user_id,
+        'user_id': portfolio._user_id,
         'wallets': portfolio.wallets
     }
 
-def load_portfolio(user_id: int):
+def load_portfolio(file_name: str, user_id: int):
     """
     Загрузка портфеля и кошельков
     """
-    portfolio_data = None
+    portfolios = load_data(file_name)
 
-    portfolios = load_data('portfolios')
+    for portfolio_data in portfolios:
+        if portfolio_data['user_id'] == user_id:
+            wallets = {}
 
-    for portfolio in portfolios:
-        if portfolio['user_id'] == user_id:
-            portfolio_data = portfolio
-            break
-    
-    if portfolio_data is None:
-        raise ValueError('Портфель пользователя не найден')
-    
-    wallets = {}
+            for currency_code, wallet_data in portfolio_data['wallets'].items():
+                wallets[currency_code] = Wallet(
+                    currency_code=currency_code,
+                    balance=wallet_data['balance']
+                )
 
-    for currency_code, wallet_data in portfolio_data['wallets'].items():
-        wallets[currency_code] = Wallet(
-            currency_code=currency_code,
-            balance=wallet_data['balance']
-        )
-
-    portfolio = Portfolio(
-        user_id=portfolio_data['user_id'],
-        wallets=wallets
-    )
+            return Portfolio(
+                user_id=portfolio_data['user_id'],
+                wallets=wallets
+            )
     
     return portfolio
 
-def save_portfolio(portfolio: Portfolio):
+def save_portfolio(file_name:str, portfolio: Portfolio):
     """
     Сохранение портфеля 
     """
-    portfolios = load_data('portfolios')
+    portfolios = load_data(file_name)
 
     portfolio_data = {
         'user_id': portfolio.user_id,
@@ -87,7 +79,8 @@ def save_portfolio(portfolio: Portfolio):
     for index, saved_portfolio in enumerate(portfolios):
         if saved_portfolio['user_id'] == portfolio.user_id:
             portfolios[index] = portfolio_data
-            save_data('portfolios', portfolios)
-            return
+            break
+    else:
+        portfolios.append(portfolio_data)
 
-    raise ValueError('Портфель пользователя не найден')
+    save_data(file_name, portfolios)

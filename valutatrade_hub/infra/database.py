@@ -1,5 +1,5 @@
-from core import utils
-from infra.settings import SettingsLoader
+from valutatrade_hub.core import utils
+from .settings import SettingsLoader
 
 
 class DatabaseManager():
@@ -39,10 +39,16 @@ class DatabaseManager():
         return utils.load_data(self.portfolios_path)
 
     def load_portfolio_by_id(self, user_id):
-        return utils.load_portfolio(user_id)
+        return utils.load_portfolio(
+            self.portfolios_path,
+            user_id
+        )
 
-    def save_portfolio(self, portfolios):
-        return utils.save_portfolio(portfolios)
+    def save_portfolio(self, portfolio):
+        return utils.save_portfolio(
+            self.portfolios_path,
+            portfolio
+        )
 
     def user_to_dict(self, users):
         return utils.user_to_dict(users)

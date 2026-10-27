@@ -60,19 +60,13 @@ def register(username: str, password: str):
         wallets={}
     )
 
-    portfolios = db.load_portfolio()
-
-    portfolio_to_save = db.portfolio_to_dict(new_portfolio)
-    portfolios.append(portfolio_to_save)
-
     try:
-        db.save_portfolio(portfolios)
+        db.save_portfolio(new_portfolio)
         db.save_user(users)
     except Exception as e:
         raise OSError(
-            f'Не удалось создать пользователя'
-            f'Ошибка: {e}'
-        )
+            f'Не удалось создать пользователя. Ошибка: {e}'
+        ) from e
 
     print(
         f'Пользователь {username} зарегистрирован '
