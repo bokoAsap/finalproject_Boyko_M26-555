@@ -17,13 +17,15 @@ class Currency(ABC):
 
     @name.setter
     def name(self, name):
-        if isinstance(name, str):
-            if name.isapha() and len(name) != 0:
-                self._name = name
-            else:
-                raise ValueError('Имя не может быть пустым')
-        else:
-            raise TypeError('Неправильный тип имени')
+        if  not isinstance(name, str):
+            raise TypeError('Неправильный тип имени валюты')
+        if not name.strip(): 
+            raise ValueError('Имя валюты не может быть пустым')
+        if not all(word.isalpha() for word in name.split()):
+            raise ValueError('Имя валюты может содержать только буквы и пробелы')
+    
+        self._name = name
+            
         
     
     @property
@@ -34,7 +36,7 @@ class Currency(ABC):
     def code(self, code):
         if isinstance(code, str):
             if (
-                code.isapha() 
+                code.isalpha() 
                 and code.isupper() 
                 and 2 <= len(code) <= 5 
                 and ' ' not in code):

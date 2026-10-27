@@ -78,8 +78,6 @@ def log_action(action: str, verbose: bool = False):
                 return result
 
             except Exception as e:
-                import traceback
-                traceback.print_exc()
 
                 message = f'action = {action} username = '
                 error_message = (

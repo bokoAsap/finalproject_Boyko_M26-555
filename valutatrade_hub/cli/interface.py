@@ -1,13 +1,31 @@
 import argparse
 import shlex
+import logging
 
 from valutatrade_hub.core import exceptions, usecases
+from valutatrade_hub.infra import settings
+from valutatrade_hub.logging_config import config
 
+settings = settings.SettingsLoader()
+
+def welcome():
+    print('Добро пожаловать')
+    print(
+        'register --username **** --password ****'
+        ' - зарегистрировать пользователя'
+    )
+    print(
+        'login --username **** --password ****'
+        ' - авторизоваться как пользователь'
+    )
+    print('exit - выйти из программы')
 
 def run():
     """
     Единственной точкой входа для пользовательских команд
     """
+    config() 
+
     parser = argparse.ArgumentParser()
 
     subparsers = parser.add_subparsers(
@@ -65,6 +83,7 @@ def run():
         "--base",
         type=str,
         required=False,
+        default=settings.get("DEFAULT_CURRENCY"),
         help="Базовая валюта"
     )
 
@@ -136,6 +155,7 @@ def run():
 
     user = None
 
+    welcome()
     while True:
         try:
             command_line = input('>>> ')

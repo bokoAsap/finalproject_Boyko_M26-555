@@ -1,7 +1,7 @@
 import logging
 from logging.handlers import RotatingFileHandler
 
-from infra import settings
+from valutatrade_hub.infra import settings
 
 settings = settings.SettingsLoader()
 logs_file = settings.get("LOG_FILE")

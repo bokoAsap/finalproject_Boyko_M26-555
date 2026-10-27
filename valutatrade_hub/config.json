@@ -4,7 +4,7 @@
     "RATES_FILE": "data/rates.json",
     "RATES_TTL_SECONDS": 300,
     "DEFAULT_CURRENCY": "USD",
-    "LOG_FILE": "logs/valuta.log",
+    "LOG_FILE": "valutatrade_hub/logs/valuta.log",
     "LOG_LEVEL": "INFO",
     "LOG_FORMAT": "%(levelname)s - %(asctime)s - %(message)s"
 }
