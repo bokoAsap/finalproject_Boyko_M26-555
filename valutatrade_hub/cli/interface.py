@@ -10,15 +10,50 @@ settings = settings.SettingsLoader()
 
 def welcome():
     print('Добро пожаловать')
+
     print(
         'register --username **** --password ****'
         ' - зарегистрировать пользователя'
     )
+
     print(
         'login --username **** --password ****'
         ' - авторизоваться как пользователь'
     )
+
+    print(
+        'get-rate --from **** --to ****'
+        ' - получить курс валют'
+    )
+
     print('exit - выйти из программы')
+
+def menu():
+    print('Меню пользователя')
+
+    print(
+        'show-portfolio --*base ***'
+        ' - посмотреть свой портфель'
+    )
+
+    print(
+        'buy --currency **** --amount ****'
+        ' - купить валюту'
+    )
+
+    print(
+        'sell --currency **** --amount ****'
+        ' - продать валюту'
+    )
+
+    print(
+        'get-rate --from **** --to ****'
+        ' - получить курс валют'
+    )
+
+    print('exit - выйти из программы')
+
+    print('PS: * - необязательный модификатор')
 
 def run():
     """
@@ -173,6 +208,7 @@ def run():
                         args.username,
                         args.password
                     )
+                    menu()
                 case 'show-portfolio':
                     usecases.show_portfolio(
                         user,
