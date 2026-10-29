@@ -15,7 +15,7 @@ rates_ttl = settings.get("RATES_TTL_SECONDS")
 default_currency = settings.get("DEFAULT_CURRENCY")
 
 @log_action('register')
-def register(username: str, password: str):
+def register(username: str, password: str) -> User:
     """
     Назначение: создать нового пользователя.
     Шаги:
@@ -81,7 +81,7 @@ def register(username: str, password: str):
 
 
 @log_action('login')
-def login(username: str, password:str):
+def login(username: str, password:str) -> User:
     """
     Назначение: войти и зафиксировать текущую сессию.
     Шаги:
@@ -119,7 +119,7 @@ def login(username: str, password:str):
 
     return user
 
-def show_portfolio(user: User|None, base: str = default_currency):
+def show_portfolio(user: User|None, base: str = default_currency) -> None:
     """ Назначение: показать все кошельки и итоговую стоимость в базовой валюте 
     (по умолчанию USD).
     Шаги:
@@ -157,7 +157,7 @@ def show_portfolio(user: User|None, base: str = default_currency):
     print(f'ИТОГО: {total} {base}')
 
 @log_action('buy')
-def buy(user: User|None, currency:str, amount: float):
+def buy(user: User|None, currency:str, amount: float) -> None:
     """
     Назначение: купить валюту.
     Шаги:
@@ -208,7 +208,7 @@ def buy(user: User|None, currency:str, amount: float):
     )
 
 @log_action('sell')
-def sell(user: User|None, currency:str, amount: float):
+def sell(user: User|None, currency:str, amount: float) -> None:
     """
     Назначение: продать указанную валюту.
     Шаги:
@@ -257,7 +257,7 @@ def sell(user: User|None, currency:str, amount: float):
             f'Такого кошелька в портфеле пользователя {user.username} нет'
         )
 
-def get_rate(source:str, to:str):
+def get_rate(source:str, to:str) -> None:
     """
     Назначение: получить текущий курс одной валюты к другой.
     Шаги:
@@ -310,5 +310,3 @@ def get_rate(source:str, to:str):
     print(f'Обратный курс {to}→{source}: '
         f'{(1 / course):.2f}'
     )
-
-    return course, updated_at
