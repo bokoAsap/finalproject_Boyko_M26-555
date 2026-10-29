@@ -58,7 +58,7 @@ class ApiRequestError(Exception):
         self.reason = reason
     
     def __str__(self):
-         """
+        """
         Строковое представления ошибки ApiRequestError
         """
         return f"Ошибка при обращении к внешнему API: {self.reason}"
