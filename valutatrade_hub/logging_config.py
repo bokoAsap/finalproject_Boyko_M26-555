@@ -8,9 +8,9 @@ logs_file = settings.get("LOG_FILE")
 logs_level = settings.get("LOG_LEVEL")
 logs_format = settings.get("LOG_FORMAT")
 
-def config():
+def config() -> logging.Logger:
     """
-    Кофигурация логгера
+    Конфигурация логгера
     """
     logger = logging.getLogger("ValutaTrade")
     logger.setLevel(logs_level)
