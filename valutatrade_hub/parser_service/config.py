@@ -1,8 +1,12 @@
 import os
 from dataclasses import dataclass
 
+
 @dataclass
-class ParserConfig:
+class ParserConfig():
+    """
+    Класс-кофигуратор парсера
+    """
     # Ключ загружается из переменной окружения
     EXCHANGERATE_API_KEY: str = os.getenv("EXCHANGERATE_API_KEY")
 
