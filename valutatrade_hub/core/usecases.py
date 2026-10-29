@@ -1,12 +1,13 @@
 import secrets
 from datetime import datetime, timezone
 
+from valutatrade_hub.decorators import log_action
+from valutatrade_hub.infra import database, settings
+
 from .currencies import Factory
 from .exceptions import ApiRequestError
 from .exchange_rates import exchange_rates
 from .models import Portfolio, User
-from valutatrade_hub.decorators import log_action
-from valutatrade_hub.infra import database, settings
 
 db = database.DatabaseManager()
 
