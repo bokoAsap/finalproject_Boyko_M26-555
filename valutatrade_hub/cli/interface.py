@@ -2,10 +2,12 @@ import argparse
 import shlex
 
 from valutatrade_hub.core import exceptions, usecases
-from valutatrade_hub.infra import settings
-from valutatrade_hub.logging_config import config
+from valutatrade_hub.infra import settings, database
+from valutatrade_hub.parser_service import config, api_clients, storage, updater
 
+db = database.DatabaseManager()
 settings = settings.SettingsLoader()
+
 
 def welcome() -> None:
     """
@@ -23,21 +25,18 @@ def welcome() -> None:
         ' - авторизоваться как пользователь'
     )
 
-    print(
-        'get-rate --from **** --to ****'
-        ' - получить курс валют'
-    )
-
     print('exit - выйти из программы')
 
 def menu() -> None:
     """
     Меню для авторизированного пользователя
     """
-    print('Меню пользователя')
+    print(
+        'Меню личного кабинета пользователя'
+    )
 
     print(
-        'show-portfolio --*base ***'
+        'show-portfolio --$base ***'
         ' - посмотреть свой портфель'
     )
 
@@ -52,20 +51,20 @@ def menu() -> None:
     )
 
     print(
-        'get-rate --from **** --to ****'
+        'show-rates --from **** --to ****'
         ' - получить курс валют'
     )
 
-    print('exit - выйти из программы')
+    print(
+        'exit - выйти из личного кабинета пользователя'
+    )
 
-    print('PS: * - необязательный модификатор')
+    print('PS: $ - необязательный модификатор')
 
 def run() -> None:
     """
     Единственная точка входа для пользовательских команд
     """
-    config() 
-
     parser = argparse.ArgumentParser()
 
     subparsers = parser.add_subparsers(
@@ -167,13 +166,13 @@ def run() -> None:
         help="Количество продаваемой валюты"
     )
 
-    # get_rate
-    get_rate_parser = subparsers.add_parser(
-        "get-rate",
+    # 
+    show_rates_parser = subparsers.add_parser(
+        "show-rates",
         help="Получение курса текущей валюты к другой"
     )
 
-    get_rate_parser.add_argument(
+    show_rates_parser.add_argument(
         "--from",
         dest="source",
         type=str,
@@ -181,11 +180,24 @@ def run() -> None:
         help="Исходная валюта"
     )
 
-    get_rate_parser.add_argument(
+    show_rates_parser.add_argument(
         "--to",
         type=str,
         required=True,
         help="Целевая валюта"
+    )
+
+    # update-rates
+    update_rates_parser = subparsers.add_parser(
+        "update-rates",
+        help="Запуск немедленного обновления курсов валют"
+    )
+
+    update_rates_parser.add_argument(
+        "--source",
+        type=str,
+        required=False,
+        help="Обновить данные только из указанного источника"
     )
 
     subparsers.add_parser(
@@ -215,28 +227,71 @@ def run() -> None:
                         args.password
                     )
                     menu()
-                case 'show-portfolio':
-                    usecases.show_portfolio(
-                        user,
-                        args.base
-                    )
-                case 'buy':
-                    usecases.buy(
-                        user,
-                        args.currency,
-                        args.amount
-                    )
-                case 'sell':
-                    usecases.sell(
-                        user,
-                        args.currency,
-                        args.amount
-                    )
-                case 'get-rate':
-                    usecases.get_rate(
-                        args.source,
-                        args.to
-                    )
+                    while True:
+                        command_line = input('>>> ')
+
+                        args = parser.parse_args(shlex.split(command_line))
+
+                        match args.command:
+                            case 'show-portfolio':
+                                usecases.show_portfolio(
+                                    user,
+                                    args.base
+                                )
+                            case 'buy':
+                                usecases.buy(
+                                    user,
+                                    args.currency,
+                                    args.amount
+                                )
+                            case 'sell':
+                                usecases.sell(
+                                    user,
+                                    args.currency,
+                                    args.amount
+                                )
+                            case 'show-rates':
+                                usecases.show_rates(
+                                    args.source,
+                                    args.to
+                                )
+                            case 'update-rates':
+                                app_config = config.ParserConfig()
+
+                                clients = [
+                                    api_clients.ExchangeRateApiClient(
+                                        app_config.EXCHANGERATE_API_URL,
+                                        app_config.EXCHANGERATE_API_KEY,
+                                        app_config.BASE_CURRENCY,
+                                        app_config.REQUEST_TIMEOUT
+                                    ),
+                                    api_clients.CoinGeckoClient(
+                                        app_config.COINGECKO_URL,
+                                        ','.join(list(app_config.CRYPTO_ID_MAP.keys())),
+                                        app_config.BASE_CURRENCY,
+                                        app_config.REQUEST_TIMEOUT
+                                    ),
+                                ]
+
+                                app_storage = storage.Storage(app_config.HISTORY_FILE_PATH, db)
+                                if args.source == 'coingecko':
+                                    selected_clients = [clients[1]]
+                                elif args.source == 'exchangerate':
+                                    selected_clients = [clients[0]]
+                                elif args.source is None:
+                                    selected_clients = clients
+                                else:
+                                    raise ValueError(
+                                        f'Неизвестный источник: {args.source}'
+                                    )
+                                rates_updater = updater.RatesUpdater(
+                                        selected_clients, 
+                                        app_storage
+                                )
+    )
+                                rates_updater.run()
+                            case 'exit':
+                                break
                 case 'exit':
                     return
                 case _:
@@ -247,9 +302,11 @@ def run() -> None:
             print(e)
         except exceptions.CurrencyNotFoundError as e:
             print(e)
-            print('Используйте get-rate, чтобы увидеть доступные валюты')
+            print('Используйте show-rates, чтобы увидеть доступные валюты')
         except exceptions.ApiRequestError as e:
             print(e)
             print('Проверьте подключение или попробуйте позднее')
         except Exception as e:
             print(f'Ошибка: {e}')
+        finally:
+            user = None
