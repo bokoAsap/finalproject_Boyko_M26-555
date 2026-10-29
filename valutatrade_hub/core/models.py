@@ -83,9 +83,8 @@ class User:
         Геттер атрибута registration_date
         """
         return self._registration_date
-
     
-    def get_user_info(self) ->:
+    def get_user_info(self) -> None:
         """
         Выводит информацию о пользователе (без пароля)
         """
