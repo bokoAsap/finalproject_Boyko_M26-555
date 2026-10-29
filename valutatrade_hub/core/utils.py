@@ -3,7 +3,7 @@ import json
 from .models import Portfolio, User, Wallet
 
 
-def load_data(file_name: str):
+def load_data(file_name: str) -> dict:
     """
     Загружает данные по имени из файла
     """
@@ -11,14 +11,14 @@ def load_data(file_name: str):
         data = json.load(file)
         return data
 
-def save_data(file_name: str, data: list) :
+def save_data(file_name: str, data: list) -> None:
     """
     Сохраняет данные в файл
     """
     with open(f'{file_name}', 'w', encoding='utf-8') as file:
         json.dump(data, file)
 
-def user_to_dict(user: User):
+def user_to_dict(user: User) -> dict:
     """
     Преобразование объекта User к словарю
     """
@@ -30,7 +30,7 @@ def user_to_dict(user: User):
         'registration_date': user.registration_date.isoformat()
     }
 
-def portfolio_to_dict(portfolio: Portfolio):
+def portfolio_to_dict(portfolio: Portfolio) -> dict:
     """
     Преобразование объекта Portfolio к словарю
     """
@@ -39,7 +39,7 @@ def portfolio_to_dict(portfolio: Portfolio):
         'wallets': portfolio.wallets
     }
 
-def load_portfolio(file_name: str, user_id: int):
+def load_portfolio(file_name: str, user_id: int) -> list:
     """
     Загрузка портфеля и кошельков
     """
@@ -60,9 +60,9 @@ def load_portfolio(file_name: str, user_id: int):
                 wallets=wallets
             )
     
-    return portfolio
+    return portfolios
 
-def save_portfolio(file_name:str, portfolio: Portfolio):
+def save_portfolio(file_name:str, portfolio: Portfolio) -> None:
     """
     Сохранение портфеля 
     """
