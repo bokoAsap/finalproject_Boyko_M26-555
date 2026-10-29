@@ -6,13 +6,18 @@ from .exchange_rates import exchange_rates
 
 
 class User:
+    """
+    Представляет собой пользователя
+
+    Позволяет сменить и проверить пароль пользователя,
+    и получить о нем информацию
+    """
     def __init__(self, 
                 user_id: int, 
                 username: str, 
                 hashed_password:str,
                 salt: str, 
-                reg_date: datetime
-    ):
+                reg_date: datetime):
         """
         Конструктор класса User
         """
@@ -80,7 +85,7 @@ class User:
         return self._registration_date
 
     
-    def get_user_info(self):
+    def get_user_info(self) ->:
         """
         Выводит информацию о пользователе (без пароля)
         """
@@ -89,13 +94,13 @@ class User:
         print(f'Соль: {self.salt}')
         print(f'Дата регистрации: {self.registration_date}')
 
-    def change_password(self, new_password: str):
+    def change_password(self, new_password: str) -> None:
         """
         Изменяет пароль пользователя, с хешированием нового пароля
         """
         self.hashed_password = new_password
     
-    def verify_password(self, password: str):
+    def verify_password(self, password: str) -> None:
         """
         Проверяет введённый пароль на совпадение
         """
@@ -104,6 +109,14 @@ class User:
                 ).hexdigest()  
 
 class Wallet:
+    """
+    Представляет сосбой кошелек пользователя 
+    в некоторой валюте
+
+    Позволяет пополнять, списывать, получать 
+    сумму конкретного кошелька,
+    и пересчитать сумму в базовой валюте
+    """
     def __init__(self, 
                 currency_code: str, 
                 balance: float):
@@ -133,7 +146,7 @@ class Wallet:
 
         self._balance = balance
 
-    def _amount_check(self, amount):
+    def _amount_check(self, amount) -> float:
         """
         Проверяет поступающий amount на соотвествие типу данных
         и положительность
@@ -146,13 +159,13 @@ class Wallet:
         
         return amount
 
-    def deposit(self, amount: float):
+    def deposit(self, amount: float) -> None:
         """
         Пополнение баланса
         """
         self.balance += self._amount_check(amount)
     
-    def withdraw(self, amount: float):
+    def withdraw(self, amount: float) -> None:
         """
         Снятие средств (если баланс позволяет)
         """
@@ -166,13 +179,13 @@ class Wallet:
                 code=self.currency_code
             )
     
-    def get_balance_info(self):
+    def get_balance_info(self) -> None:
         """
         Вывод информации о текущем балансе
         """
         print(f'{self.currency_code}: {self.balance}', end='') 
 
-    def count_in_base_currency(self, base_currency: str = 'USD'):
+    def count_in_base_currency(self, base_currency: str = 'USD') -> float:
         """
         Пересчет баланса кошелька в базой валюте, по умолчанию в долларах
         """
@@ -183,6 +196,14 @@ class Wallet:
         return balance_in_base_currency
 
 class Portfolio:
+    """
+    Представляет сосбой портфель пользователя,
+    состоящий из нескольких кошельков
+
+    Позволяет добавить новую валюту в портфель,
+    получить сумму активов в некоторой валюте,
+    и по коду валюты получить кошелек
+    """
     def __init__(self,
         user_id: int,
         wallets: dict[str, Wallet]):
@@ -206,7 +227,7 @@ class Portfolio:
         """
         return self._wallets.copy()
 
-    def add_currency(self, currency_code:str):
+    def add_currency(self, currency_code:str) -> None:
         """
         Добавляет новый кошелёк в портфель (если его ещё нет)
         """
@@ -215,7 +236,7 @@ class Portfolio:
         else:
             raise KeyError('Кошелек в такой валюте уже есть в портфеле')
     
-    def get_total_value(self, base_currency:str = 'USD'):
+    def get_total_value(self, base_currency:str = 'USD') -> float:
         """
         Возвращает общую стоимость всех валют пользователя 
         в указанной базовой валюте (по курсам, полученным из API или фиктивным данным)
@@ -227,7 +248,7 @@ class Portfolio:
             )
         return total_sum
         
-    def get_wallet(self, currency_code:str):
+    def get_wallet(self, currency_code:str) -> None:
         """
         Возвращает объект Wallet по коду валюты.
         """
