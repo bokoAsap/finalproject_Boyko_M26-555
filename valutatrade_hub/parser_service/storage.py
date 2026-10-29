@@ -1,7 +1,6 @@
-from datetime import datetime
-
-from valutatrade_hub.infra.database import DatabaseManager
 from valutatrade_hub.core.utils import load_data, save_data
+from valutatrade_hub.infra.database import DatabaseManager
+
 
 class Storage():
     """
@@ -31,18 +30,8 @@ class Storage():
         """
         save_data(self.file_path, rates)
     
-    def update_cache(self, rates: dict) -> None:
+    def update_cache(self, cache: list) -> None:
         """
         Обновляет локальный кеш с курсами
-        """
-        cache = {"pairs": {}}
-        for pair, rate in rates.items():
-            cache['pairs'][pair] = {
-                    "rate": rate["rate"],
-                    "updated_at": rate["timestamp"],
-                    "source": rate["source"]
-            } 
-
-        cache['last_refresh'] = datetime.now().isoformat()
-        
+        """        
         self.db.save_rate(cache)

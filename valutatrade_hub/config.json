@@ -2,6 +2,7 @@
     "USERS_FILE": "data/users.json",
     "PORTFOLIOS_FILE": "data/portfolios.json",
     "RATES_FILE": "data/rates.json",
+    "EXCHANGE_RATE_FILE": "data/exchange_rates.json",
     "RATES_TTL_SECONDS": 300,
     "DEFAULT_CURRENCY": "USD",
     "LOG_FILE": "valutatrade_hub/logs/valuta.log",
