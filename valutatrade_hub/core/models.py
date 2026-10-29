@@ -11,7 +11,11 @@ class User:
                 username: str, 
                 hashed_password:str,
                 salt: str, 
-                reg_date: datetime):
+                reg_date: datetime
+    ):
+        """
+        Конструктор класса User
+        """
         self._user_id = user_id
         self._username = username
         self._hashed_password = hashed_password
@@ -20,14 +24,23 @@ class User:
     
     @property
     def user_id(self):
+        """
+        Геттер атрибута user_id
+        """
         return self._user_id
     
     @property
     def username(self):
+        """
+        Геттер атрибута username
+        """
         return self._username
 
     @username.setter
     def username(self, username):
+        """
+        Сеттер атрибута username
+        """
         if username is not None:
             self._username = username
         else:
@@ -35,14 +48,23 @@ class User:
     
     @property
     def hashed_password(self):
+        """
+        Геттер атрибута hashed_password
+        """
         return self._hashed_password
     
     @property
     def salt(self):
+        """
+        Геттер атрибута salt
+        """
         return self._salt
 
     @ hashed_password.setter
     def hashed_password(self, password):
+        """
+        Сеттер атрибута hashed_password
+        """
         if len(password) >= 4:
             self._hashed_password = hashlib.sha256(
                 (password + self.salt).encode('utf-8')
@@ -52,6 +74,9 @@ class User:
     
     @property
     def registration_date(self):
+        """
+        Геттер атрибута registration_date
+        """
         return self._registration_date
 
     
@@ -82,15 +107,24 @@ class Wallet:
     def __init__(self, 
                 currency_code: str, 
                 balance: float):
+        """
+        Конструктор класса Wallet
+        """
         self.currency_code = currency_code
         self._balance = balance
     
     @property
     def balance(self):
+        """
+        Геттер атрибута balance
+        """
         return self._balance
     
     @balance.setter
     def balance(self, balance):
+        """
+        Сеттер атрибута balance
+        """
         if not isinstance(balance, (int, float)):
             raise TypeError('Неподходящий тип данных для баланса кошелька')
 
@@ -100,11 +134,15 @@ class Wallet:
         self._balance = balance
 
     def _amount_check(self, amount):
+        """
+        Проверяет поступающий amount на соотвествие типу данных
+        и положительность
+        """
         if not isinstance(amount, (int, float)):
             raise TypeError('Неподходящий тип данных для суммы')
         
         if amount <= 0:
-            raise ValueError('Сумма не может быть отрицательной')
+            raise ValueError('Сумма должна быть положительной')
         
         return amount
 
@@ -147,17 +185,25 @@ class Wallet:
 class Portfolio:
     def __init__(self,
         user_id: int,
-        wallets: dict[str, Wallet]
-    ):
+        wallets: dict[str, Wallet]):
+        """
+        Конструктор класса Portfolio
+        """
         self._user_id = user_id
         self._wallets = wallets
     
     @property
     def user_id(self):
+        """
+        Геттер атрибута user_id
+        """
         return self._user_id
     
     @property
     def wallets(self):
+        """
+        Геттер атрибута wallets
+        """
         return self._wallets.copy()
 
     def add_currency(self, currency_code:str):
