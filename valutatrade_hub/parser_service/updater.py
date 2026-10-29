@@ -25,7 +25,7 @@ class RatesUpdater():
         self.clients = clients
         self.storage = storage
     
-    def run_update(self):
+    def run_update(self) -> None:
         """
         Вызывает fetch_rates() у каждого клиента.
         Объединяет полученные словари с курсами в один.
