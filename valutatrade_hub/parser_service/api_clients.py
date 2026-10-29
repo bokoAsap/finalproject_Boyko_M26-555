@@ -1,12 +1,20 @@
 from abc import ABC, abstractmethod
-import requests
-from core.exceptions import ApiRequestError
 from datetime import datetime
+
+import requests
 from config import ParserConfig
+from core.exceptions import ApiRequestError
 
 
 class BaseApiClient(ABC):
+    """
+    Абстрактный класс 
+    представляет собой API-клиента
+    """
     def __init__(self, url, timeout, ):
+        """
+        Конструктор класса BaseApiClient
+        """
         self.url = url
         self.timeout = timeout
         
@@ -19,13 +27,19 @@ class BaseApiClient(ABC):
 
 
 class CoinGeckoClient(BaseApiClient):
+    """
+    Представляет собой клиента CoinGecko 
+    """
     def __init__(
         self, 
         url: str,
         ids: str, 
         vs_currencies: str,
         timeout: int
-    ):
+        ):
+        """
+        Конструктор класса CoinGeckoClient
+        """
         super().__init__(url, timeout)
         self.ids = ids
         self.vs_currencies = vs_currencies
@@ -93,13 +107,19 @@ class CoinGeckoClient(BaseApiClient):
 
 
 class ExchangeRateApiClient(BaseApiClient):
+    """
+    Представляет собой клиента ExchangeRateApi 
+    """
     def __init__(
         self, 
         url: str,
         api_key: str, 
         base: str,
         timeout: int
-    ):
+        ):
+        """
+        Конструктор класса ExchangeRateApiClient
+        """
         super().__init__(url, timeout)
         self.api_key = api_key
         self.base = base    
