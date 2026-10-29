@@ -1,6 +1,5 @@
 import argparse
 import shlex
-import logging
 
 from valutatrade_hub.core import exceptions, usecases
 from valutatrade_hub.infra import settings
@@ -8,7 +7,10 @@ from valutatrade_hub.logging_config import config
 
 settings = settings.SettingsLoader()
 
-def welcome():
+def welcome() -> None:
+    """
+    Начальное меню 
+    """
     print('Добро пожаловать')
 
     print(
@@ -28,7 +30,10 @@ def welcome():
 
     print('exit - выйти из программы')
 
-def menu():
+def menu() -> None:
+    """
+    Меню для авторизированного пользователя
+    """
     print('Меню пользователя')
 
     print(
@@ -55,9 +60,9 @@ def menu():
 
     print('PS: * - необязательный модификатор')
 
-def run():
+def run() -> None:
     """
-    Единственной точкой входа для пользовательских команд
+    Единственная точка входа для пользовательских команд
     """
     config() 
 
@@ -191,6 +196,7 @@ def run():
     user = None
 
     welcome()
+    # Основной цикл программы
     while True:
         try:
             command_line = input('>>> ')
@@ -236,6 +242,7 @@ def run():
                 case _:
                     parser.error('Неизвестная команда')
                     return
+        # Обработка исключений
         except exceptions.InsufficientFundsError as e:
             print(e)
         except exceptions.CurrencyNotFoundError as e:
