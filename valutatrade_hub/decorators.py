@@ -1,11 +1,18 @@
 import functools
 import logging
+from typing import Callable, ParamSpec, TypeVar
 
 from valutatrade_hub.core import utils
 
+P = ParamSpec("P")
+R = TypeVar("R")
+
 logger = logging.getLogger("ValutaTrade")
 
-def get_wallet_balance(user, currency):
+def get_wallet_balance(user, currency) -> float|None:
+    """
+    Получение баланса пользователя
+    """
     if user is None or currency is None:
         return None
 
@@ -27,12 +34,28 @@ def get_wallet_balance(user, currency):
         return None
 
 
-def log_action(action: str, verbose: bool = False):
+def log_action(
+    action: str, 
+    verbose: bool = False
+    ) -> Callable[[Callable[P, R]], Callable[P, R]]:
+    """
+    Логгирование на уровне INFO следующую структуру:
+    timestamp (ISO), action (BUY/SELL/REGISTER/LOGIN),
+    username (или user_id),
+    currency_code, amount,
+    rate и base (если применимо),
+    result (OK/ERROR),
+    error_type/error_message при исключениях.
+    Декоратор пробрасывает исключения дальше и фиксирует их в лог.
+    Поддержка опции verbose 
+    """
     action = action.upper()
-    def decorator(func):
+    def decorator(
+        func: Callable[P, R]
+        ) -> Callable[P, R]:
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs) -> R:
 
             user = args[0]
 
@@ -44,6 +67,7 @@ def log_action(action: str, verbose: bool = False):
                 currency = None
                 amount = None
             else:
+                # Лоика логгирования для BUY/SELL
                 username = user.username if user is not None else None
                 currency = args[1]
                 amount = args[2]
@@ -77,6 +101,7 @@ def log_action(action: str, verbose: bool = False):
 
                 return result
 
+            # Обработка исключений
             except Exception as e:
 
                 message = f'action = {action} username = '
