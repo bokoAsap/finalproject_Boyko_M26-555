@@ -167,7 +167,7 @@ def show_portfolio(user: User|None, base: str = default_currency) -> None:
 
     rates = db.load_rate()
 
-    portfolio.rates(rates)
+    portfolio.rates = rates
 
     print(f'Портфель пользователя {user.username} (база: {base})')
 
@@ -298,50 +298,55 @@ def get_rate(source:str, to:str) -> None:
     """
     Factory.get_currency(source)
     Factory.get_currency(to)
-    
-    rates = db.load_rate()
 
-    pair = f'{source}_{to}'
-    rate = rates["pairs"].get(pair)
+    if source == to:
+        course = 1.0
+        updated_at = '-'
 
-    is_reversed = 0
-    if rate is None:
-        pair = f'{to}_{source}'
-        rate = rates["pairs"].get(pair)
-        is_reversed = 1
-
-    course = None
-    updated_at = None
-
-    now = datetime.now()
-
-    if rate is not None:
-        updated_at = datetime.fromisoformat(rate['updated_at'])
-        diff = (now - updated_at).total_seconds() 
-
-        if 0 <= diff <= rates_ttl:
-            if is_reversed:
-                course = 1 / rate['rate']
-            else:
-                course = rate['rate']
-    
-    if course is None:
-        rates_updater.run_update()
+    else:
         rates = db.load_rate()
+
+        pair = f'{source}_{to}'
         rate = rates["pairs"].get(pair)
 
+        is_reversed = 0
         if rate is None:
-            raise ValueError(
-                f'Не удалось получить курс {pair}'
-            )
-    
-        course = rate['rate']
-        updated_at = datetime.fromisoformat(rate['updated_at'])        
+            pair = f'{to}_{source}'
+            rate = rates["pairs"].get(pair)
+            is_reversed = 1
+
+        course = None
+        updated_at = None
+
+        now = datetime.now()
+
+        if rate is not None:
+            updated_at = datetime.fromisoformat(rate['updated_at'])
+            diff = (now - updated_at).total_seconds() 
+
+            if 0 <= diff <= rates_ttl:
+                if is_reversed:
+                    course = 1 / rate['rate']
+                else:
+                    course = rate['rate']
+        
+        if course is None:
+            rates_updater.run_update()
+            rates = db.load_rate()
+            rate = rates["pairs"].get(pair)
+
+            if rate is None:
+                raise ValueError(
+                    f'Не удалось получить курс {pair}'
+                )
+        
+            course = 1 / rate['rate'] if is_reversed else rate['rate']
+            updated_at = datetime.fromisoformat(rate['updated_at'])     
 
     print(
         f'Курс {source}→{to}: '
         f'{course:.2f} (обновлено: '
-        f'{updated_at.isoformat()})'
+        f'{updated_at})'
     )
     print(f'Обратный курс {to}→{source}: '
         f'{(1 / course):.8f}'

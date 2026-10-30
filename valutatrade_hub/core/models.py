@@ -257,18 +257,21 @@ class Portfolio:
         """
         if currency == base:
             rate = 1.0
-
-        pairs = self._rates['pairs']
-        course = (
-            pairs.get(f'{currency}_{base}') 
-            or pairs.get(f'{base}_{currency}')
-        )
-        if course is not None:
-            rate = course['rate'] 
         else:
-            raise ValueError(
-                f"Курс {currency}_{base} не найден"
+            pairs = self._rates['pairs']
+            course = (
+                pairs.get(f'{currency}_{base}') 
+                or pairs.get(f'{base}_{currency}')
             )
+            if course is not None:
+                if f'{currency}_{base}' in pairs:
+                    rate = course['rate']
+                else:
+                    rate = 1 / course['rate']
+            else:
+                raise ValueError(
+                    f"Курс {currency}_{base} не найден"
+                )
         
         return rate
     
