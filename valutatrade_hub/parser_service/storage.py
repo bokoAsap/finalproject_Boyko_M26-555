@@ -30,7 +30,7 @@ class Storage():
         """
         save_data(self.file_path, rates)
     
-    def update_cache(self, cache: list) -> None:
+    def update_cache(self, cache: dict) -> None:
         """
         Обновляет локальный кеш с курсами
         """        

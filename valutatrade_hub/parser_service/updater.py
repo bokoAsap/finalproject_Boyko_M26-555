@@ -39,6 +39,11 @@ class RatesUpdater():
         all_rates = self.storage.load_rates() or {}
         success, fail = 0, 0
 
+        cache = {
+            "pairs": {},
+            "last_refresh": datetime.now().isoformat()
+        }
+
         for client in self.clients:
             client_name = type(client).__name__
   
@@ -74,15 +79,12 @@ class RatesUpdater():
                 len(rates)
             )
 
-            cache = {"pairs": {}}
             for pair, rate in rates.items():
                 cache['pairs'][pair] = {
                         "rate": rate["rate"],
                         "updated_at": rate["timestamp"],
                         "source": rate["source"]
                 } 
-
-            cache['last_refresh'] = datetime.now().isoformat()
 
             all_rates.update(rates)
         
@@ -107,7 +109,7 @@ class RatesUpdater():
             raise
         
         try:
-            self.storage.update_cache(cache)
+            self.storage.update_cache(caches)
             logger.info(
                     "Сохранено %d курсов во внутренний кэш",
                     len(all_rates),
@@ -124,4 +126,4 @@ class RatesUpdater():
             "успешно: %d, ошибки: %d",
             success,
             fail
-            )
+        )
