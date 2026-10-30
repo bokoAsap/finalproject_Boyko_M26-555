@@ -2,7 +2,7 @@ import os
 from dataclasses import dataclass
 
 
-@dataclass
+# @dataclass
 class ParserConfig():
     """
     Класс-кофигуратор парсера
@@ -25,8 +25,8 @@ class ParserConfig():
     }
 
     # Пути
-    RATES_FILE_PATH: str = "/data/rates.json"
-    HISTORY_FILE_PATH: str = "/data/exchange_rates.json"
+    RATES_FILE_PATH: str = "data/rates.json"
+    HISTORY_FILE_PATH: str = "data/exchange_rates.json"
 
     # Сетевые параметры
     REQUEST_TIMEOUT: int = 10
