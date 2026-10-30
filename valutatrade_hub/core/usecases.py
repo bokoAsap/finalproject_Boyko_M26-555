@@ -360,3 +360,53 @@ def update_rates(source: str = None) -> None:
     )
     
     selected_updater.run()
+
+def show_rates(
+    currency: str = None,
+    top: int = None) -> None:
+    """
+    Назначение: Показать список актуальных курсов 
+    из локального кеша с возможностью фильтрации.
+    Шаги:
+    Прочитать данные из data/rates.json.
+    Применить фильтры, если они указаны.
+    Отсортировать данные 
+    Вывести отформатированную таблицу с курсами 
+    и временем их последнего обновления.
+    """ 
+    dict_rates = db.load_rate()
+
+    rates = dict_rates["pairs"]
+
+    res = rates
+
+    if currency is not None:
+        filtered = {
+            pair: rate
+            for pair, rate in rates.items()
+            if currency in pair
+        }
+
+        res = filtered
+    
+    if top is not None:
+        sorted_res = dict(
+            sorted(
+                res.items(), 
+                key=lambda item: item[1]['rate'],
+                reverse=True
+                )
+            )
+
+        sliced_res =  dict(list(sorted_res.items())[:top])
+
+        res = sliced_res
+    else:
+        sorted_res = dict(sorted(res.items()))
+
+        res = sorted_res
+    
+    print(f'Rates from cache (updated at {dict_rates["last_refresh"]})')
+
+    for key, val in res.items():
+        print(f"- {key}: {val['rate']}")
