@@ -203,13 +203,13 @@ class Portfolio:
     def __init__(self,
         user_id: int,
         wallets: dict[str, Wallet],
-        rates: dict):
+        rates: dict = {}):
         """
         Конструктор класса Portfolio
         """
         self._user_id = user_id
         self._wallets = wallets
-        self._rates = rates
+        self._rates = rates 
     
     @property
     def user_id(self):
