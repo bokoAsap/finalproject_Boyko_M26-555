@@ -3,6 +3,7 @@ import shlex
 
 from valutatrade_hub.core import exceptions, usecases
 from valutatrade_hub.infra import database, settings
+from valutatrade_hub.logging_config import config
 
 db = database.DatabaseManager()
 
@@ -75,6 +76,7 @@ def run() -> None:
     """
     Единственная точка входа для пользовательских команд
     """
+    config()
     parser = argparse.ArgumentParser()
 
     subparsers = parser.add_subparsers(
