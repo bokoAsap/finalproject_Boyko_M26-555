@@ -165,6 +165,10 @@ def show_portfolio(user: User|None, base: str = default_currency) -> None:
 
     portfolio = db.load_portfolio_by_id(user_id)
 
+    rates = db.load_rate()
+
+    portfolio.rates(rates)
+
     print(f'Портфель пользователя {user.username} (база: {base})')
 
     if not portfolio.wallets:
@@ -173,7 +177,8 @@ def show_portfolio(user: User|None, base: str = default_currency) -> None:
     
     for currency_code, wallet in portfolio.wallets.items():
         wallet.get_balance_info()
-        print(f' -> {wallet.count_in_base_currency(base)}')
+        rate = portfolio.get_rate(currency_code, base)
+        print(f' -> {wallet.count_in_base_currency(rate)}')
     
     print('-' * 40)
 
