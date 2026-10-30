@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 
 import requests
-from config import ParserConfig
-from core.exceptions import ApiRequestError
+from valutatrade_hub.parser_service.config import ParserConfig
+from valutatrade_hub.core.exceptions import ApiRequestError
 
 
 class BaseApiClient(ABC):
