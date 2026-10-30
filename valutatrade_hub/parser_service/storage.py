@@ -21,14 +21,14 @@ class Storage():
         """
         Загружает данные из хранилища Parser Service
         """
-        return self.db.load_data(self.file_path) 
+        return load_data(self.file_path) 
 
     def save_rates(self, rates: dict) -> None:
         """
         Сохраняет данные, полученные от Parser Service, 
         в хранилище 
         """
-        self.db.save_data(self.file_path, rates)
+        save_data(self.file_path, rates)
     
     def update_cache(self, cache: list) -> None:
         """
