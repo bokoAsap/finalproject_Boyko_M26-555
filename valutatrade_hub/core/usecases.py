@@ -304,6 +304,12 @@ def get_rate(source:str, to:str) -> None:
     pair = f'{source}_{to}'
     rate = rates["pairs"].get(pair)
 
+    is_reversed = 0
+    if rate is None:
+        pair = f'{to}_{source}'
+        rate = rates["pairs"].get(pair)
+        is_reversed = 1
+
     course = None
     updated_at = None
 
@@ -314,10 +320,13 @@ def get_rate(source:str, to:str) -> None:
         diff = (now - updated_at).total_seconds() 
 
         if 0 <= diff <= rates_ttl:
-            course = rate['rate']
+            if is_reversed:
+                course = 1 / rate['rate']
+            else:
+                course = rate['rate']
     
     if course is None:
-        rates_updater.run()
+        rates_updater.run_update()
         rates = db.load_rate()
         rate = rates["pairs"].get(pair)
 
@@ -326,8 +335,8 @@ def get_rate(source:str, to:str) -> None:
                 f'Не удалось получить курс {pair}'
             )
     
-    course = rate['rate']
-    updated_at = datetime.fromisoformat(rate['updated_at'])        
+        course = rate['rate']
+        updated_at = datetime.fromisoformat(rate['updated_at'])        
 
     print(
         f'Курс {source}→{to}: '
@@ -335,7 +344,7 @@ def get_rate(source:str, to:str) -> None:
         f'{updated_at.isoformat()})'
     )
     print(f'Обратный курс {to}→{source}: '
-        f'{(1 / course):.2f}'
+        f'{(1 / course):.8f}'
     )
 
 def update_rates(source: str = None) -> None:
@@ -364,7 +373,7 @@ def update_rates(source: str = None) -> None:
             app_storage
     )
     
-    selected_updater.run()
+    selected_updater.run_update()
 
 def show_rates(
     currency: str = None,
@@ -411,7 +420,7 @@ def show_rates(
 
         res = sorted_res
     
-    print(f'Rates from cache (updated at {dict_rates["last_refresh"]})')
+    print(f'Курс из кеша (updated at {dict_rates["last_refresh"]})')
 
     for key, val in res.items():
         print(f"- {key}: {val['rate']}")
