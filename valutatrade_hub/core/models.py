@@ -2,7 +2,6 @@ import hashlib
 from datetime import datetime
 
 from .exceptions import InsufficientFundsError
-from .exchange_rates import exchange_rates
 
 
 class User:
@@ -184,13 +183,11 @@ class Wallet:
         """
         print(f'{self.currency_code}: {self.balance}', end='') 
 
-    def count_in_base_currency(self, base_currency: str = 'USD') -> float:
+    def count_in_base_currency(self, rate: float) -> float:
         """
         Пересчет баланса кошелька в базой валюте, по умолчанию в долларах
         """
-        balance_in_base_currency = (self.balance * 
-                                    exchange_rates[self.currency_code] /
-                                    exchange_rates[base_currency])
+        balance_in_base_currency = (self.balance * rate)
 
         return balance_in_base_currency
 
@@ -205,12 +202,14 @@ class Portfolio:
     """
     def __init__(self,
         user_id: int,
-        wallets: dict[str, Wallet]):
+        wallets: dict[str, Wallet],
+        rates: dict):
         """
         Конструктор класса Portfolio
         """
         self._user_id = user_id
         self._wallets = wallets
+        self._rates = rates
     
     @property
     def user_id(self):
@@ -226,6 +225,20 @@ class Portfolio:
         """
         return self._wallets.copy()
 
+    @property
+    def rates(self):
+        """
+        Геттер атрибута rates
+        """
+        return self._rates
+
+    @rates.setter
+    def rates(self, rates: dict):
+        """
+        Cеттер атрибута rates
+        """
+        self._rates = rates.copy()
+
     def add_currency(self, currency_code:str) -> None:
         """
         Добавляет новый кошелёк в портфель (если его ещё нет)
@@ -235,18 +248,47 @@ class Portfolio:
         else:
             raise KeyError('Кошелек в такой валюте уже есть в портфеле')
     
+    def get_rate(
+        self, 
+        currency: str,
+        base: str) -> float:
+        """
+        Возвращает коэффициент конвертации валюты
+        """
+        if currency == base:
+            rate = 1.0
+
+        pairs = self._rates['pairs']
+        course = (
+            pairs.get(f'{currency}_{base}') 
+            or pairs.get(f'{base}_{currency}')
+        )
+        if course is not None:
+            rate = course['rate'] 
+        else:
+            raise ValueError(
+                f"Курс {currency}_{base} не найден"
+            )
+        
+        return rate
+    
     def get_total_value(self, base_currency:str = 'USD') -> float:
         """
         Возвращает общую стоимость всех валют пользователя 
         в указанной базовой валюте (по курсам, полученным из API или фиктивным данным)
         """
         total_sum = 0
-        for wallet in self._wallets.values():
-            total_sum += (
-                wallet.count_in_base_currency(base_currency)
-            )
-        return total_sum
         
+
+        for wallet in self._wallets.values():
+            currency = wallet.currency_code
+
+            rate = self.get_rate(currency, base_currency)               
+
+            total_sum += wallet.count_in_base_currency(rate)
+        
+        return total_sum
+                
     def get_wallet(self, currency_code:str) -> None:
         """
         Возвращает объект Wallet по коду валюты.
