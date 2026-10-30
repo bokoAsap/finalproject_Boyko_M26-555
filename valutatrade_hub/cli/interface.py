@@ -2,10 +2,10 @@ import argparse
 import shlex
 
 from valutatrade_hub.core import exceptions, usecases
-from valutatrade_hub.infra import settings, database
-from valutatrade_hub.parser_service import config, api_clients, storage, updater
+from valutatrade_hub.infra import database, settings
 
 db = database.DatabaseManager()
+
 settings = settings.SettingsLoader()
 
 
@@ -166,13 +166,13 @@ def run() -> None:
         help="Количество продаваемой валюты"
     )
 
-    # 
-    show_rates_parser = subparsers.add_parser(
-        "show-rates",
+    # get_rate
+    get_rate_parser = subparsers.add_parser(
+        "get-rate",
         help="Получение курса текущей валюты к другой"
     )
 
-    show_rates_parser.add_argument(
+    get_rate_parser.add_argument(
         "--from",
         dest="source",
         type=str,
@@ -180,11 +180,31 @@ def run() -> None:
         help="Исходная валюта"
     )
 
-    show_rates_parser.add_argument(
+    get_rate_parser.add_argument(
         "--to",
         type=str,
         required=True,
         help="Целевая валюта"
+    )
+
+    # show-rates
+    show_rates_parser = subparsers.add_parser(
+        "show-rates",
+        help="Показ список актуальных курсов из кеша"
+    )
+
+    show_rates_parser.add_argument(
+        "--currency",
+        type=str,
+        required=False,
+        help="Валюта фильтрации"
+    )
+
+    show_rates_parser.add_argument(
+        "--top",
+        type=int,
+        required=True,
+        help="Количество записей в результате"
     )
 
     # update-rates
@@ -250,46 +270,20 @@ def run() -> None:
                                     args.currency,
                                     args.amount
                                 )
-                            case 'show-rates':
-                                usecases.show_rates(
+                            case 'get-rate':
+                                usecases.get_rate(
                                     args.source,
                                     args.to
                                 )
-                            case 'update-rates':
-                                app_config = config.ParserConfig()
-
-                                clients = [
-                                    api_clients.ExchangeRateApiClient(
-                                        app_config.EXCHANGERATE_API_URL,
-                                        app_config.EXCHANGERATE_API_KEY,
-                                        app_config.BASE_CURRENCY,
-                                        app_config.REQUEST_TIMEOUT
-                                    ),
-                                    api_clients.CoinGeckoClient(
-                                        app_config.COINGECKO_URL,
-                                        ','.join(list(app_config.CRYPTO_ID_MAP.keys())),
-                                        app_config.BASE_CURRENCY,
-                                        app_config.REQUEST_TIMEOUT
-                                    ),
-                                ]
-
-                                app_storage = storage.Storage(app_config.HISTORY_FILE_PATH, db)
-                                if args.source == 'coingecko':
-                                    selected_clients = [clients[1]]
-                                elif args.source == 'exchangerate':
-                                    selected_clients = [clients[0]]
-                                elif args.source is None:
-                                    selected_clients = clients
-                                else:
-                                    raise ValueError(
-                                        f'Неизвестный источник: {args.source}'
-                                    )
-                                rates_updater = updater.RatesUpdater(
-                                        selected_clients, 
-                                        app_storage
+                            case 'show-rates':
+                                usecases.show_rates(
+                                    args.currency,
+                                    args.top
                                 )
-    )
-                                rates_updater.run()
+                            case 'update-rates':
+                                usecases.update_rates(
+                                    args.source
+                                )
                             case 'exit':
                                 break
                 case 'exit':
