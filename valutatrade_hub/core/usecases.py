@@ -332,3 +332,31 @@ def get_rate(source:str, to:str) -> None:
     print(f'Обратный курс {to}→{source}: '
         f'{(1 / course):.2f}'
     )
+
+def update_rates(source: str = None) -> None:
+    """
+    Назначение: Запустить немедленное обновление курсов валют
+    Шаги:
+    Инициализировать RatesUpdater.
+    Вызвать его метод run_update().
+    Перехватить возможные ApiRequestError и 
+    вывести пользователю информативное сообщение.
+    Сообщить об успешном завершении и количестве обновленных курсов.
+    """
+    if source == 'coingecko':
+        selected_clients = [clients[1]]
+    elif source == 'exchangerate':
+        selected_clients = [clients[0]]
+    elif source is None:
+        selected_clients = clients
+    else:
+        raise ValueError(
+            f'Неизвестный источник: {source}'
+        )
+
+    selected_updater = updater.RatesUpdater(
+            selected_clients, 
+            app_storage
+    )
+    
+    selected_updater.run()
