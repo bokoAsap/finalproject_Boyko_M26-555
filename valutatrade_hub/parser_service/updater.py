@@ -37,7 +37,6 @@ class RatesUpdater():
         logger.info("Старт обновления курсов валют")
 
         all_rates = self.storage.load_rates() or {}
-        caches = []
         success, fail = 0, 0
 
         for client in self.clients:
@@ -84,7 +83,6 @@ class RatesUpdater():
                 } 
 
             cache['last_refresh'] = datetime.now().isoformat()
-            caches.append(cache)
 
             all_rates.update(rates)
         
@@ -109,7 +107,7 @@ class RatesUpdater():
             raise
         
         try:
-            self.storage.update_cache(caches)
+            self.storage.update_cache(cache)
             logger.info(
                     "Сохранено %d курсов во внутренний кэш",
                     len(all_rates),
