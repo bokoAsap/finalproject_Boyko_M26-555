@@ -1,8 +1,6 @@
 import os
-from dataclasses import dataclass
 
 
-# @dataclass
 class ParserConfig():
     """
     Класс-кофигуратор парсера
