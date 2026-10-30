@@ -3,10 +3,9 @@ from datetime import datetime, timezone
 
 from valutatrade_hub.decorators import log_action
 from valutatrade_hub.infra import database, settings
+from valutatrade_hub.parser_service import api_clients, config, storage, updater
 
 from .currencies import Factory
-from .exceptions import ApiRequestError
-from .exchange_rates import exchange_rates
 from .models import Portfolio, User
 
 db = database.DatabaseManager()
@@ -14,6 +13,30 @@ db = database.DatabaseManager()
 settings = settings.SettingsLoader()
 rates_ttl = settings.get("RATES_TTL_SECONDS")
 default_currency = settings.get("DEFAULT_CURRENCY")
+
+app_config = config.ParserConfig()
+
+clients = [
+    api_clients.ExchangeRateApiClient(
+        app_config.EXCHANGERATE_API_URL,
+        app_config.EXCHANGERATE_API_KEY,
+        app_config.BASE_CURRENCY,
+        app_config.REQUEST_TIMEOUT
+    ),
+    api_clients.CoinGeckoClient(
+        app_config.COINGECKO_URL,
+        ','.join(list(app_config.CRYPTO_ID_MAP.keys())),
+        app_config.BASE_CURRENCY,
+        app_config.REQUEST_TIMEOUT
+    ),
+]
+
+app_storage = storage.Storage(app_config.HISTORY_FILE_PATH, db)
+
+rates_updater = updater.RatesUpdater(
+        clients, 
+        app_storage
+)
 
 @log_action('register')
 def register(username: str, password: str) -> User:
@@ -274,12 +297,12 @@ def get_rate(source:str, to:str) -> None:
     rates = db.load_rate()
 
     pair = f'{source}_{to}'
-    rate = rates.get(pair)
-
-    now = datetime.now()
+    rate = rates["pairs"].get(pair)
 
     course = None
     updated_at = None
+
+    now = datetime.now()
 
     if rate is not None:
         updated_at = datetime.fromisoformat(rate['updated_at'])
@@ -289,19 +312,17 @@ def get_rate(source:str, to:str) -> None:
             course = rate['rate']
     
     if course is None:
-        try:
-            course = round(exchange_rates[to] / exchange_rates[source], 2)
-        except Exception as e:
-            raise ApiRequestError(e)
+        rates_updater.run()
+        rates = db.load_rate()
+        rate = rates["pairs"].get(pair)
 
-        updated_at = now
-        
-        rates[pair] = {
-            'rate': course,
-            'updated_at': updated_at.isoformat()
-        }
-
-        db.save_rate(rates)
+        if rate is None:
+            raise ValueError(
+                f'Не удалось получить курс {pair}'
+            )
+    
+    course = rate['rate']
+    updated_at = datetime.fromisoformat(rate['updated_at'])        
 
     print(
         f'Курс {source}→{to}: '
