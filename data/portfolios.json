@@ -1,10 +1,1 @@
-[
-  {
-    "user_id": 1,
-    "wallets": {
-      "USD": {"balance": 1500.0},
-      "BTC": {"balance": 0.05},
-      "EUR": {"balance": 200.0}
-    }
-  }
-]
+[{"user_id": 1, "wallets": {"USD": {"balance": 1500.0}, "BTC": {"balance": 0.05}, "EUR": {"balance": 200.0}}}, {"user_id": 2, "wallets": {"BTC": {"balance": 0.01}, "USD": {"balance": 900.0}}}, {"user_id": 3, "wallets": {"BTC": {"balance": 0.01}, "USD": {"balance": 900.0}}}]
