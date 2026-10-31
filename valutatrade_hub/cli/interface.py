@@ -72,6 +72,108 @@ def menu() -> None:
 
     print('\nPS: $ - необязательный модификатор\n')
 
+def execute_user_menu_command(user, args) -> bool:
+    """
+    Выполнет команды пользователевского меню
+    """
+    match args.command:
+        case 'show-portfolio':
+            usecases.show_portfolio(
+                user,
+                args.base
+            )
+        case 'buy':
+            usecases.buy(
+                user,
+                args.currency,
+                args.amount
+            )
+        case 'sell':
+            usecases.sell(
+                user,
+                args.currency,
+                args.amount
+            )
+        case 'get-rate':
+            usecases.get_rate(
+                args.source,
+                args.to
+            )
+        case 'show-rates':
+            usecases.show_rates(
+                args.currency,
+                args.top
+            )
+        case 'update-rates':
+            usecases.update_rates(
+                args.source
+            )
+        case 'exit':
+            return False
+        case _:
+            print('Неизвестная команда')
+    
+    return True  
+
+def execute_main_menu_command(
+    parser, args
+) -> bool:
+    """
+    Выполнет команды главного меню
+    """
+    match args.command:
+        case 'register':
+            usecases.register(
+                args.username,
+                args.password
+            ) 
+        case 'login':
+            user = usecases.login(
+                args.username,
+                args.password
+            )
+            session(parser, user)
+            welcome()
+        case 'exit':
+            return False
+        case _:
+            print('Неизвестная команда')
+    
+    return True   
+
+def session(parser, user) -> None:
+    """
+    Представляет собой сессию пользователя
+    """
+    menu()
+
+    while True:
+        try:
+            command_line = input('>>> ')
+            args = parser.parse_args(
+                shlex.split(command_line)
+            )
+            if not execute_user_menu_command(
+                user,
+                args
+            ):
+                break
+    
+        except exceptions.InsufficientFundsError as e:
+            print(e)
+        except exceptions.CurrencyNotFoundError as e:
+            print(e)
+            print('Используйте show-rates, чтобы увидеть доступные валюты')
+        except exceptions.ApiRequestError as e:
+            print(e)
+            print('Проверьте подключение или попробуйте позднее')
+        except SystemExit as e:
+            print(f'Неверная команда {e}') 
+        except Exception as e:
+            print(f'Ошибка: {e}')
+    print('\nВы вернулись в главное меню\n')     
+
+
 def run() -> None:
     """
     Единственная точка входа для пользовательских команд
@@ -237,74 +339,14 @@ def run() -> None:
         help="Завершение работы"
     )
 
-    user = None
-
     welcome()
-    # Основной цикл программы
+
     while True:
         try:
             command_line = input('>>> ')
-
             args = parser.parse_args(shlex.split(command_line))
-
-            match args.command:
-                case 'register':
-                    usecases.register(
-                        args.username,
-                        args.password
-                    ) 
-                case 'login':
-                    user = usecases.login(
-                        args.username,
-                        args.password
-                    )
-                    menu()
-                    while True:
-                        command_line = input('>>> ')
-
-                        args = parser.parse_args(shlex.split(command_line))
-
-                        match args.command:
-                            case 'show-portfolio':
-                                usecases.show_portfolio(
-                                    user,
-                                    args.base
-                                )
-                            case 'buy':
-                                usecases.buy(
-                                    user,
-                                    args.currency,
-                                    args.amount
-                                )
-                            case 'sell':
-                                usecases.sell(
-                                    user,
-                                    args.currency,
-                                    args.amount
-                                )
-                            case 'get-rate':
-                                usecases.get_rate(
-                                    args.source,
-                                    args.to
-                                )
-                            case 'show-rates':
-                                usecases.show_rates(
-                                    args.currency,
-                                    args.top
-                                )
-                            case 'update-rates':
-                                usecases.update_rates(
-                                    args.source
-                                )
-                            case 'exit':
-                                break
-                    print('Вы снова к главном меню')
-
-                case 'exit':
-                    return
-                case _:
-                    parser.error('Неизвестная команда')
-                    return
+            if not execute_main_menu_command(parser, args):
+                return
         # Обработка исключений
         except exceptions.InsufficientFundsError as e:
             print(e)
@@ -314,7 +356,8 @@ def run() -> None:
         except exceptions.ApiRequestError as e:
             print(e)
             print('Проверьте подключение или попробуйте позднее')
+        except SystemExit as e:
+            print(f'Неверная команда {e}') 
         except Exception as e:
-            print(f'Ошибка: {e}')
-        finally:
-            user = None
+            print(f'Ошибка: {e}')        
+        
