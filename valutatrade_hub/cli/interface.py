@@ -170,7 +170,7 @@ def session(parser, user) -> None:
         except SystemExit as e:
             print(f'Неверная команда {e}') 
         except Exception as e:
-            print(f'Ошибка: {e}')
+            print(f'\nОшибка: {e}')
     print('\nВы вернулись в главное меню\n')     
 
 
@@ -317,7 +317,7 @@ def run() -> None:
     show_rates_parser.add_argument(
         "--top",
         type=int,
-        required=True,
+        required=False,
         help="Количество записей в результате"
     )
 
