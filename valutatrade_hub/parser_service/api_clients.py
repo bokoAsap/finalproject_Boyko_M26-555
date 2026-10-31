@@ -159,7 +159,10 @@ class ExchangeRateApiClient(BaseApiClient):
 
             rates = {}
             base = data['base_code']
-            timestamp = data['time_last_update_utc']
+            timestamp = datetime.strptime(
+                data['time_last_update_utc'],
+                "%a, %d %b %Y %H:%M:%S %z"
+            ).isoformat()
             
             for code, val in data["conversion_rates"].items():
                 pair = f"{code}_{base}"
