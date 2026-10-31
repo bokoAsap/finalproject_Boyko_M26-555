@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 from valutatrade_hub.core.exceptions import ApiRequestError
 
@@ -41,7 +41,7 @@ class RatesUpdater():
 
         cache = {
             "pairs": {},
-            "last_refresh": datetime.now().isoformat()
+            "last_refresh": datetime.now(timezone.utc).isoformat()
         }
 
         for client in self.clients:

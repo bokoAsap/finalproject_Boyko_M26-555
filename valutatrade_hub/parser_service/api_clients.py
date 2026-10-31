@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 
 import requests
 
@@ -73,7 +73,7 @@ class CoinGeckoClient(BaseApiClient):
                     f'Код {resp_status}'
                 )
 
-            timestamp = datetime.now().isoformat()
+            timestamp = datetime.now(timezone.utc).isoformat()
 
             data = response.json()
 

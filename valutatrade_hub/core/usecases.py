@@ -318,7 +318,7 @@ def get_rate(source:str, to:str) -> None:
         course = None
         updated_at = None
 
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
 
         if rate is not None:
             updated_at = datetime.fromisoformat(rate['updated_at'])
