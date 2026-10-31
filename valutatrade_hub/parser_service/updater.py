@@ -109,7 +109,7 @@ class RatesUpdater():
             raise
         
         try:
-            self.storage.update_cache(caches)
+            self.storage.update_cache(cache)
             logger.info(
                     "Сохранено %d курсов во внутренний кэш",
                     len(all_rates),
